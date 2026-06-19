@@ -120,8 +120,7 @@ export default class CharSelectScene extends Phaser.Scene {
     }
 
     // ── Cards ────────────────────────────────────────────────────────
-    // 4 cards centered: card 210 wide, 44 gap
-    const CARD_W = 210, CARD_H = 300, GAP = 38
+    const CARD_W = 180, CARD_H = 300, GAP = 26
     const totalW = CHARACTERS.length * CARD_W + (CHARACTERS.length - 1) * GAP
     const startX = (W - totalW) / 2 + CARD_W / 2
 
@@ -338,7 +337,7 @@ export default class CharSelectScene extends Phaser.Scene {
 
   selectChar(index, player) {
     const char = CHARACTERS[index]
-    const CARD_W = 210, CARD_H = 300, GAP = 38
+    const CARD_W = 180, CARD_H = 300, GAP = 26
     const totalW = CHARACTERS.length * CARD_W + (CHARACTERS.length - 1) * GAP
     const startX = (this.scale.width - totalW) / 2 + CARD_W / 2
 
