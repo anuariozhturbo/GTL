@@ -1,14 +1,29 @@
-node_modules
-dist
-dist-ssr
-*.local
+# Dependencies
+node_modules/
+
+# Environment variables — never commit real keys
 .env
 .env.local
-.DS_Store
-*.log
-.vercel
-supabase/.temp
-supabase/.branches
+.env.*.local
+
+# Build output
+dist/
+dist-ssr/
+
+# Vite cache
+.vite/
+
+# TypeScript
 *.tsbuildinfo
-vite.config.js
-vite.config.d.ts
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Supabase local dev
+supabase/.branches/
+supabase/.temp/
