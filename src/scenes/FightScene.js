@@ -156,6 +156,7 @@ export default class FightScene extends Phaser.Scene {
       merrs:  { name: 'MERRS',  color: 0x60a5fa },
       dice:   { name: 'DICE',   color: 0xf59e0b },
       thragg: { name: 'THRAGG', color: 0xef4444 },
+      lohe:   { name: 'LOHE',   color: 0xfde047 },
     }
     const user = this.registry.get('user')
     const p1Name = (!user || user.isGuest) ? null : user.displayName
@@ -191,6 +192,7 @@ export default class FightScene extends Phaser.Scene {
       { key: 'merrs',  states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'dice',   states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'thragg', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
+      { key: 'lohe',   states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
     ]
     const rates = { idle:8, walk:12, jump:10, attack:18, block:10, hurt:14, die:8, special:14 }
     const loops = { idle:true, walk:true, jump:false, attack:false, block:true, hurt:false, die:false, special:false }
