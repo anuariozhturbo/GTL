@@ -1546,13 +1546,11 @@ export default class BootScene extends Phaser.Scene {
         const sy = p.raEndY - (state === 'attack'  ? [22,20,10, 2,18][i]||14
                                : state === 'special' ? [14,18,12,10][i]||12
                                : 14)
-        // Blade glow
-        gr.fillStyle(0xfef08a, state === 'attack' ? 0.28 + atkT * 0.38 : 0.22)
-        gr.fillRect(sx - 1, sy, 6, 12)
-        // Blade
-        gr.fillStyle(0xfde047, 1); gr.fillRect(sx, sy, 4, 34)
-        gr.fillStyle(0xfef9c3, 0.7); gr.fillRect(sx + 1, sy, 2, 28)
-        // Impact flash at strike frame
+        // Blade (black with metallic edge highlight)
+        gr.fillStyle(0x111111, 1); gr.fillRect(sx, sy, 4, 34)
+        gr.fillStyle(0x555555, 0.8); gr.fillRect(sx + 1, sy, 1, 30)
+        gr.fillStyle(0xaaaaaa, 0.5); gr.fillRect(sx + 2, sy, 1, 28)
+        // Impact flash at strike frame — golden sparks contrast against black blade
         if (state === 'attack' && i === 3) {
           gr.lineStyle(1.5, 0xfef08a, 1)
           gr.lineBetween(sx + 2, sy, sx + 12, sy - 14)
@@ -1560,27 +1558,28 @@ export default class BootScene extends Phaser.Scene {
           gr.lineBetween(sx + 2, sy, sx + 10, sy - 16)
           gr.fillStyle(0xfffde7, 0.9); gr.fillCircle(sx + 2, sy, 4)
         }
-        // Guard (gold)
-        gr.fillStyle(0xb45309, 1); gr.fillRect(sx - 7, sy + 9, 18, 5)
-        gr.fillStyle(0xfbbf24, 0.6); gr.fillRect(sx - 5, sy + 10, 14, 2)
-        // Grip + pommel
-        gr.fillStyle(0x92400e, 1); gr.fillRoundedRect(sx, sy + 14, 4, 10, 1)
-        gr.fillStyle(0xfde047, 1); gr.fillCircle(sx + 2, sy + 26, 4)
+        // Guard (black)
+        gr.fillStyle(0x111111, 1); gr.fillRect(sx - 7, sy + 9, 18, 5)
+        gr.fillStyle(0x444444, 0.7); gr.fillRect(sx - 5, sy + 10, 14, 2)
+        // Grip (black) + pommel (dark with gold dot)
+        gr.fillStyle(0x1a1a1a, 1); gr.fillRoundedRect(sx, sy + 14, 4, 10, 1)
+        gr.fillStyle(0x222222, 1); gr.fillCircle(sx + 2, sy + 26, 4)
+        gr.fillStyle(0xfbbf24, 0.9); gr.fillCircle(sx + 2, sy + 26, 2)
 
         // ── SPEAR (left hand — tall pole behind body) ───────────────
         const spX = p.laEndX
         const spY = oy + 8  // top of frame (spear rises above head)
-        // Shaft
-        gr.fillStyle(0xb45309, 1); gr.fillRect(spX - 2, spY, 4, 72)
-        gr.fillStyle(0xfbbf24, 0.4); gr.fillRect(spX - 1, spY, 2, 68)
-        // Tip (gold spearhead)
-        gr.fillStyle(0xfde047, 1)
+        // Shaft (black)
+        gr.fillStyle(0x111111, 1); gr.fillRect(spX - 2, spY, 4, 72)
+        gr.fillStyle(0x444444, 0.5); gr.fillRect(spX - 1, spY, 2, 68)
+        // Spearhead (black with metallic shine)
+        gr.fillStyle(0x111111, 1)
         gr.fillTriangle(spX - 6, spY + 14, spX + 2, spY, spX + 7, spY + 14)
-        gr.fillStyle(0xfef9c3, 0.8)
-        gr.fillTriangle(spX - 2, spY + 12, spX + 2, spY + 2, spX + 4, spY + 12)
-        // Crossguard
-        gr.fillStyle(0xb45309, 1); gr.fillRect(spX - 8, spY + 14, 16, 4)
-        gr.fillStyle(0xfbbf24, 0.6); gr.fillRect(spX - 6, spY + 15, 12, 2)
+        gr.fillStyle(0x888888, 0.7)
+        gr.fillTriangle(spX - 1, spY + 12, spX + 2, spY + 3, spX + 4, spY + 12)
+        // Crossguard (black)
+        gr.fillStyle(0x111111, 1); gr.fillRect(spX - 8, spY + 14, 16, 4)
+        gr.fillStyle(0x555555, 0.6); gr.fillRect(spX - 6, spY + 15, 12, 2)
       })
       gr.done(`lohe_${state}`)
     })
