@@ -31,6 +31,15 @@ const CHARACTERS = [
     unique: 'Every 3rd normal attack: 0.5s stun',
     stats: { hp: 200, spd: 3, pwr: 9 },
   },
+  {
+    key: 'lohe', name: 'LOHE', color: 0xfde047, hex: '#fde047',
+    desc: 'Golden warrior. Every 7th hit launches the enemy across the stage.',
+    weapons: 'Sword · Spear',
+    special: 'Golden Lunge — 23% max HP (14s CD)',
+    unique: '7th hit = massive knockback · Special grants 11s attack boost',
+    stats: { hp: 210, spd: 4, pwr: 8 },
+    registeredOnly: true,
+  },
 ]
 
 const STAT_MAX = { hp: 200, spd: 5, pwr: 9 }
@@ -49,6 +58,7 @@ export default class CharSelectScene extends Phaser.Scene {
 
   create() {
     const W = this.scale.width, H = this.scale.height
+    this._user = this.registry.get('user')
 
     // Disable right-click context menu so P2 can select with right click
     this.input.mouse.disableContextMenu()
@@ -251,6 +261,10 @@ export default class CharSelectScene extends Phaser.Scene {
       this.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 100, ease: 'Quad.Out' })
     })
     container.on('pointerdown', (ptr) => {
+      if (char.registeredOnly && this._user?.isGuest) {
+        this._showLockMsg(cx, cy)
+        return
+      }
       if (ptr.rightButtonDown()) {
         this.selectChar(i, 2)
       } else {
@@ -258,9 +272,39 @@ export default class CharSelectScene extends Phaser.Scene {
       }
     })
 
+    // Lock overlay for registered-only characters when user is a guest
+    if (char.registeredOnly && this._user?.isGuest) {
+      const lockBg = this.add.graphics()
+      lockBg.fillStyle(0x000000, 0.62)
+      lockBg.fillRoundedRect(cx - W / 2, cy - H / 2, W, H, 10)
+      lockBg.setDepth(3)
+
+      this.add.text(cx, cy - 16, '🔒', {
+        fontSize: '36px', fontFamily: 'monospace',
+      }).setOrigin(0.5).setDepth(3)
+
+      this.add.text(cx, cy + 28, 'REGISTER TO\nUNLOCK', {
+        fontSize: '13px', color: '#fde047', fontFamily: 'monospace',
+        fontStyle: 'bold', align: 'center', letterSpacing: 2,
+      }).setOrigin(0.5).setDepth(3)
+    }
+
     container.charIndex = i
     container.charData  = char
     return container
+  }
+
+  _showLockMsg(cx, cy) {
+    if (this._lockMsgActive) return
+    this._lockMsgActive = true
+    const txt = this.add.text(cx, cy - 160, 'CREATE AN ACCOUNT\nTO PLAY AS LOHE', {
+      fontSize: '15px', color: '#fde047', fontFamily: 'monospace',
+      fontStyle: 'bold', align: 'center', stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(10)
+    this.time.delayedCall(1800, () => {
+      txt.destroy()
+      this._lockMsgActive = false
+    })
   }
 
   drawCardGlow(g, cx, cy, W, H, color, alpha) {

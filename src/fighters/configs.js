@@ -1,4 +1,14 @@
 export const FIGHTER_CONFIGS = {
+  lohe: {
+    maxHp: 210, speed: 230, jumpForce: 580, attackDamage: 11,
+    attackRange: 145, attackCooldown: 380,
+    specialCooldown: 14000,
+    lungeDamagePct: 0.23,
+    attackBoostDuration: 11000,
+    boostedCooldown: 180,
+    knockbackForce: 1500,
+    knockbackCombo: 7,
+  },
   ash: {
     maxHp: 200, speed: 220, jumpForce: 620, attackDamage: 12,
     attackRange: 130, attackCooldown: 400,

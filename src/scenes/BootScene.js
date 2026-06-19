@@ -222,6 +222,7 @@ export default class BootScene extends Phaser.Scene {
     this.makeGolem()
     this.makeViper()
     this.makeNexus()
+    this.makeLohe()
     this.makeShield()
     this.makeEffects()
   }
@@ -1433,6 +1434,155 @@ export default class BootScene extends Phaser.Scene {
         }
       })
       gr.done(`nexus_${state}`)
+    })
+  }
+
+  // ══════════════════════════════════════════════════════════════════
+  // LOHE — fully golden warrior, yellow everything, sword + spear
+  // ══════════════════════════════════════════════════════════════════
+  makeLohe() {
+    const C = { body: 0xfde047, pants: 0xca8a04, skin: 0xfef9c3, shoe: 0x92400e, glow: 0xfef08a, lSleeve: 0xf59e0b, rSleeve: 0xfde047 }
+
+    const POSES = {
+      idle: [
+        { torsoLean: 3, torsoY: 0,  laY:31, raY:22 },
+        { torsoLean: 3, torsoY:-2,  laY:29, raY:20 },
+        { torsoLean: 3, torsoY:-4,  laY:27, raY:18 },
+        { torsoLean: 3, torsoY:-2,  laY:29, raY:20 },
+      ],
+      walk: [
+        { torsoLean: 5, laY:18, raY:42, llY:52, rlY:68, llH:36, rlH:18 },
+        { torsoLean: 8, laY:13, raY:47, llY:46, rlY:75, llH:42, rlH:11 },
+        { torsoLean: 4, laY:22, raY:36, llY:56, rlY:64, llH:30, rlH:24 },
+        { torsoLean:-4, laY:36, raY:22, llY:64, rlY:56, llH:24, rlH:30 },
+        { torsoLean:-8, laY:47, raY:13, llY:75, rlY:46, llH:11, rlH:42 },
+        { torsoLean:-5, laY:42, raY:18, llY:68, rlY:52, llH:18, rlH:36 },
+      ],
+      jump: [
+        { torsoY: 6, torsoLean:-2, laY:32, raY:32, llY:74, rlY:74, llH:10, rlH:10 },
+        { torsoY:-11, headY:-4, laY: 9, raY: 9, llY:80, rlY:80, llH: 6, rlH: 6 },
+        { torsoY:-3,  headY:-1, laY:19, raY:19, llY:70, rlY:70, llH:20, rlH:20 },
+      ],
+      attack: [
+        { torsoLean:-10, raX:8, raY:10, laY:36, headY:-3 },
+        { torsoLean:-14, raEnd:{x:40,y:16}, laY:32, headY:-5 },
+        { torsoLean:  6, raEnd:{x:62,y:24}, laY:28, headY:-1 },
+        { torsoLean: 18, raEnd:{x:78,y:32}, laY:24, headY: 4 },
+        { torsoLean: 10, raEnd:{x:70,y:48}, laY:30, headY: 1 },
+      ],
+      block: [
+        { torsoLean:-6, laX:-34, laY:20, laH:20, raY:36 },
+        { torsoLean:-8, laX:-36, laY:18, laH:18, raY:36, torsoY:-2 },
+        { torsoLean:-8, laX:-36, laY:18, laH:18, raY:36, torsoY:-2 },
+      ],
+      hurt: [
+        { torsoLean:-16, headY:-6, laY:18, raY:20, torsoY:-4 },
+        { torsoLean: -9, headY:-3, laY:25, raY:27, torsoY:-2 },
+        { torsoLean: -2, headY: 0, laY:30, raY:30, torsoY: 0 },
+      ],
+      die: [
+        { torsoLean:18, torsoY:10, laY:46, raY:46, llH:16, rlH:16 },
+        { torsoLean:28, torsoY:20, laY:56, raY:56, llH: 7, rlH: 7 },
+        { torsoLean:34, torsoY:28, laY:60, raY:60, llH: 2, rlH: 2 },
+      ],
+      special: [
+        { torsoLean: 8, raX:16, raY:18, headY:-2 },
+        { torsoLean:22, raEnd:{x:76,y:28}, laY:32, headY:-5 },
+        { torsoLean:16, raEnd:{x:72,y:36}, laY:30, headY:-3 },
+        { torsoLean: 2, raX:18, raY:28, headY: 0 },
+      ],
+    }
+
+    Object.entries(POSES).forEach(([state, frames]) => {
+      const gr = this.g(80, 104, frames.length)
+      frames.forEach((pose, i) => {
+        const ox = i * 80, oy = 4
+        const cx = ox + 40
+        const atkT = (state === 'attack' || state === 'special') ? i / (frames.length - 1) : 0
+
+        // Golden aura
+        if (atkT > 0) {
+          gr.fillStyle(0xfde047, 0.09 + atkT * 0.15)
+          gr.fillEllipse(cx, oy + 52, 56 + atkT * 20, 42 + atkT * 14)
+          gr.fillStyle(0xfef9c3, 0.05 + atkT * 0.07)
+          gr.fillEllipse(cx, oy + 52, 82 + atkT * 14, 60 + atkT * 8)
+        }
+
+        const p = this.drawBody(gr, ox, oy, pose, C)
+
+        // Torso belt / sash
+        gr.fillStyle(0xb45309, 1)
+        gr.fillRect(p.tX, p.tY + p.tH - 10, p.tW, 8)
+        gr.fillStyle(0xfbbf24, 0.5)
+        gr.fillRect(p.tX + 2, p.tY + p.tH - 8, p.tW - 4, 3)
+        // Belt buckle
+        this.box(gr, 0xfef9c3, p.tX + p.tW / 2 - 5, p.tY + p.tH - 9, 10, 7, 2)
+
+        // Yellow spiky hair
+        gr.fillStyle(0xfde047, 1)
+        gr.fillEllipse(p.hCx, p.hCy - p.hR + 5, 30, 14)
+        for (let s = 0; s < 6; s++) {
+          const sx = p.hCx - 13 + s * 5
+          gr.fillTriangle(sx, p.hCy - p.hR + 8, sx + 2, p.hCy - p.hR - 10 - (s % 2) * 5, sx + 5, p.hCy - p.hR + 8)
+        }
+        // Hair highlight
+        gr.fillStyle(0xfef9c3, 0.55)
+        gr.fillEllipse(p.hCx - 2, p.hCy - p.hR + 4, 14, 6)
+
+        // Face
+        this.face(gr, state, p.hCx, p.hCy, C.skin, 0xb45309)
+
+        // Yellow glowing eyes (override face eyes)
+        const eyeA = state === 'attack' || state === 'special' ? 1 : 0.9
+        gr.fillStyle(0xfbbf24, eyeA)
+        gr.fillCircle(p.hCx - 4, p.hCy - 3, 3.5)
+        gr.fillCircle(p.hCx + 4, p.hCy - 3, 3.5)
+        gr.fillStyle(0xfef9c3, eyeA * 0.8)
+        gr.fillCircle(p.hCx - 4, p.hCy - 3, 1.8)
+        gr.fillCircle(p.hCx + 4, p.hCy - 3, 1.8)
+
+        // ── SWORD (right hand) ──────────────────────────────────────
+        const sx = p.raEndX - 2
+        const sy = p.raEndY - (state === 'attack'  ? [22,20,10, 2,18][i]||14
+                               : state === 'special' ? [14,18,12,10][i]||12
+                               : 14)
+        // Blade glow
+        gr.fillStyle(0xfef08a, state === 'attack' ? 0.28 + atkT * 0.38 : 0.22)
+        gr.fillRect(sx - 1, sy, 6, 12)
+        // Blade
+        gr.fillStyle(0xfde047, 1); gr.fillRect(sx, sy, 4, 34)
+        gr.fillStyle(0xfef9c3, 0.7); gr.fillRect(sx + 1, sy, 2, 28)
+        // Impact flash at strike frame
+        if (state === 'attack' && i === 3) {
+          gr.lineStyle(1.5, 0xfef08a, 1)
+          gr.lineBetween(sx + 2, sy, sx + 12, sy - 14)
+          gr.lineBetween(sx + 2, sy, sx + 14, sy - 6)
+          gr.lineBetween(sx + 2, sy, sx + 10, sy - 16)
+          gr.fillStyle(0xfffde7, 0.9); gr.fillCircle(sx + 2, sy, 4)
+        }
+        // Guard (gold)
+        gr.fillStyle(0xb45309, 1); gr.fillRect(sx - 7, sy + 9, 18, 5)
+        gr.fillStyle(0xfbbf24, 0.6); gr.fillRect(sx - 5, sy + 10, 14, 2)
+        // Grip + pommel
+        gr.fillStyle(0x92400e, 1); gr.fillRoundedRect(sx, sy + 14, 4, 10, 1)
+        gr.fillStyle(0xfde047, 1); gr.fillCircle(sx + 2, sy + 26, 4)
+
+        // ── SPEAR (left hand — tall pole behind body) ───────────────
+        const spX = p.laEndX
+        const spY = oy + 8  // top of frame (spear rises above head)
+        // Shaft
+        gr.fillStyle(0xb45309, 1); gr.fillRect(spX - 2, spY, 4, 72)
+        gr.fillStyle(0xfbbf24, 0.4); gr.fillRect(spX - 1, spY, 2, 68)
+        // Tip (gold spearhead)
+        gr.fillStyle(0xfde047, 1)
+        gr.fillTriangle(spX - 6, spY + 14, spX + 2, spY, spX + 7, spY + 14)
+        gr.fillStyle(0xfef9c3, 0.8)
+        gr.fillTriangle(spX - 2, spY + 12, spX + 2, spY + 2, spX + 4, spY + 12)
+        // Crossguard
+        gr.fillStyle(0xb45309, 1); gr.fillRect(spX - 8, spY + 14, 16, 4)
+        gr.fillStyle(0xfbbf24, 0.6); gr.fillRect(spX - 6, spY + 15, 12, 2)
+      })
+      gr.done(`lohe_${state}`)
     })
   }
 

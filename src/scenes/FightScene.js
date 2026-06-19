@@ -2,6 +2,7 @@ import Ash    from '../fighters/Ash.js'
 import Merrs  from '../fighters/Merrs.js'
 import Dice   from '../fighters/Dice.js'
 import Thragg from '../fighters/Thragg.js'
+import Lohe   from '../fighters/Lohe.js'
 import { FIGHTER_CONFIGS } from '../fighters/configs.js'
 import AIController      from '../ai/AIController.js'
 import SmartAIController from '../ai/SmartAIController.js'
@@ -14,12 +15,13 @@ import VolcanoTempleStage from '../stages/VolcanoTemple.js'
 import CyberCityStage    from '../stages/CyberCity.js'
 import SpaceStationStage from '../stages/SpaceStation.js'
 
-const FIGHTER_CLASSES = { ash: Ash, merrs: Merrs, dice: Dice, thragg: Thragg }
+const FIGHTER_CLASSES = { ash: Ash, merrs: Merrs, dice: Dice, thragg: Thragg, lohe: Lohe }
 const AI_PROFILES = {
   ash:    { aggression: 0.55, reactionMs: 220, attackRange: 130, preferredRange: 260 },
   merrs:  { aggression: 0.65, reactionMs: 180, attackRange: 140, preferredRange: 320 },
   dice:   { aggression: 0.60, reactionMs: 200, attackRange: 130, preferredRange: 300 },
   thragg: { aggression: 0.75, reactionMs: 250, attackRange: 140, preferredRange: 200 },
+  lohe:   { aggression: 0.70, reactionMs: 210, attackRange: 145, preferredRange: 270 },
 }
 
 const DIFFICULTY_MOD = {
