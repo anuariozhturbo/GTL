@@ -193,6 +193,10 @@ export default class MenuScene extends Phaser.Scene {
 
     this._settingsDom = this.add.dom(W / 2, H / 2).createFromHTML(MODAL_HTML).setDepth(11)
 
+    // Invisible zone over the modal panel that absorbs Phaser pointer events,
+    // preventing them from reaching the overlay and closing the modal on input clicks.
+    this._modalZone = this.add.zone(W / 2, H / 2, 360, 320).setDepth(12).setInteractive()
+
     // Focus glow
     const nickEl = this._settingsDom.getChildByID('field-nick')
     nickEl.addEventListener('focus', () => { nickEl.style.borderColor = '#9b59b6' })
@@ -264,8 +268,10 @@ export default class MenuScene extends Phaser.Scene {
   _closeSettings() {
     this._settingsDom?.destroy()
     this._overlay?.destroy()
+    this._modalZone?.destroy()
     this._settingsDom = null
     this._overlay = null
+    this._modalZone = null
     this._settingsOpen = false
   }
 }
