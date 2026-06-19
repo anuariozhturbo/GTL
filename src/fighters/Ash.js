@@ -86,10 +86,15 @@ export default class Ash extends Fighter {
   }
 
   updateUnique() {
-    // Update glide visual
     if (this.isGliding) {
-      if (this.scene.time.now % 80 < 16)
+      // Dedicated glide animation overrides jump
+      this.play('ash_glide', true)
+      // Trail every ~40ms (double frequency vs before)
+      if (this.scene.time.now % 40 < 16)
         this.scene.spawnGlideTrail(this.x, this.y, this)
+    } else if (this.state === 'jump' && this.anims.currentAnim?.key === 'ash_glide') {
+      // Glide ended mid-air — snap back to jump anim
+      this.play('ash_jump', true)
     }
   }
 }

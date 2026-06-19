@@ -281,6 +281,13 @@ export default class BootScene extends Phaser.Scene {
         { torsoY:-8,  laY: 8, raY: 8, headY:-6,  laX:-30, raX:26 },
         { torsoY: 0,  laY:28, raY:28, headY: 0,  laX:-26, raX:22 },
       ],
+      glide: [
+        { torsoY:-4,  headY:-3, laY:16, raY:16, laX:-30, raX:26, llH:13, rlH:13 },
+        { torsoY:-8,  headY:-5, laY:10, raY:10, laX:-36, raX:32, llH:11, rlH:11 },
+        { torsoY:-11, headY:-7, laY: 6, raY: 6, laX:-40, raX:36, llH: 9, rlH: 9 },
+        { torsoY:-8,  headY:-5, laY:10, raY:10, laX:-36, raX:32, llH:11, rlH:11 },
+        { torsoY:-4,  headY:-3, laY:16, raY:16, laX:-30, raX:26, llH:13, rlH:13 },
+      ],
     }
 
     Object.entries(POSES).forEach(([state, frames]) => {
@@ -290,13 +297,17 @@ export default class BootScene extends Phaser.Scene {
         const cx = ox + 40
         const tl = pose.torsoLean || 0, ty = pose.torsoY || 0
 
-        // Wing size varies by state — wider during action, drooping when hurt/dying
-        const wW = (state === 'attack' || state === 'special') ? 38
+        // Wing size varies by state
+        // glide: wings fully extended, size scales with frame (breathe effect)
+        const glideBreath = state === 'glide' ? 1 + 0.06 * Math.sin((i / 4) * Math.PI) : 1
+        const wW = state === 'glide'   ? Math.round(46 * glideBreath)
+          : (state === 'attack' || state === 'special') ? 38
           : state === 'jump'  ? 32
           : state === 'hurt'  ? 20
           : state === 'die'   ? 12
           : 28
-        const wH = (state === 'attack' || state === 'special') ? 34
+        const wH = state === 'glide'   ? Math.round(42 * glideBreath)
+          : (state === 'attack' || state === 'special') ? 34
           : state === 'jump'  ? 30
           : state === 'hurt'  ? 16
           : state === 'die'   ?  8
@@ -323,8 +334,18 @@ export default class BootScene extends Phaser.Scene {
         gr.lineBetween(wCx-10, wCy, wCx-Math.round(wW*0.5), wCy+Math.round(wH*0.45))
         gr.lineBetween(wCx+10, wCy, wCx+Math.round(wW*0.5), wCy+Math.round(wH*0.45))
 
-        // Aura glow — scales with attack frame intensity
-        if (state === 'attack' || state === 'special') {
+        // Aura glow
+        if (state === 'glide') {
+          // Soft persistent wind aura — pulses with glideBreath
+          gr.fillStyle(0x8b5cf6, 0.08 + 0.04 * Math.sin((i / 4) * Math.PI))
+          gr.fillEllipse(cx, oy + 52, 70 * glideBreath, 54 * glideBreath)
+          gr.fillStyle(0xc084fc, 0.04)
+          gr.fillEllipse(cx, oy + 52, 100 * glideBreath, 74 * glideBreath)
+          // Feather wisps at wingtips
+          gr.fillStyle(0xa78bfa, 0.18)
+          gr.fillEllipse(cx - wW + 8, wCy + wH - 6, 14, 6)
+          gr.fillEllipse(cx + wW - 8, wCy + wH - 6, 14, 6)
+        } else if (state === 'attack' || state === 'special') {
           const atkT = state === 'attack' ? i / (frames.length - 1) : 0.4 + 0.2 * (i % 2)
           gr.fillStyle(C.glow, 0.07 + atkT * 0.16)
           gr.fillEllipse(cx, oy + 52, 58 + atkT * 24, 42 + atkT * 16)

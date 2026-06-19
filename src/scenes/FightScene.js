@@ -188,14 +188,14 @@ export default class FightScene extends Phaser.Scene {
 
   createAnims() {
     const defs = [
-      { key: 'ash',    states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
+      { key: 'ash',    states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4, glide:5 } },
       { key: 'merrs',  states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'dice',   states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'thragg', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'lohe',   states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
     ]
-    const rates = { idle:8, walk:12, jump:10, attack:18, block:10, hurt:14, die:8, special:14 }
-    const loops = { idle:true, walk:true, jump:false, attack:false, block:true, hurt:false, die:false, special:false }
+    const rates = { idle:8, walk:12, jump:10, attack:18, block:10, hurt:14, die:8, special:14, glide:10 }
+    const loops = { idle:true, walk:true, jump:false, attack:false, block:true, hurt:false, die:false, special:false, glide:true }
 
     defs.forEach(({ key, states }) => {
       Object.entries(states).forEach(([state, frameCount]) => {
