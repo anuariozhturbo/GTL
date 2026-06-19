@@ -1,30 +1,23 @@
 {
-  "name": "nfact-teens-starter",
-  "private": true,
+  "name": "chaos-construct",
   "version": "1.0.0",
+  "description": "Chaos Construct — 2.5D browser fighting game",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "preview": "vite preview",
     "db:login": "supabase login",
     "db:link": "supabase link",
     "db:new": "supabase migration new",
-    "db:push": "supabase db push",
-    "ai:secret": "supabase secrets set",
-    "ai:deploy": "supabase functions deploy ai"
+    "db:push": "supabase db push"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.45.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "phaser": "^3.87.0",
+    "@supabase/supabase-js": "^2.50.0"
   },
   "devDependencies": {
-    "@types/react": "^18.3.3",
-    "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
-    "supabase": "^2.0.0",
-    "typescript": "^5.5.3",
-    "vite": "^5.4.8"
+    "vite": "^6.3.5",
+    "supabase": "^2.0.0"
   }
 }

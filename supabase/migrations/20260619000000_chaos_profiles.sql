@@ -1,11 +1,12 @@
 -- Chaos Construct: player profiles + match stats
 
 CREATE TABLE IF NOT EXISTS public.profiles (
-  id           UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
-  display_name TEXT    NOT NULL DEFAULT 'FIGHTER',
-  wins         INTEGER NOT NULL DEFAULT 0,
-  losses       INTEGER NOT NULL DEFAULT 0,
-  updated_at   TIMESTAMPTZ DEFAULT NOW()
+  id             UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
+  display_name   TEXT    NOT NULL DEFAULT 'FIGHTER',
+  wins           INTEGER NOT NULL DEFAULT 0,
+  losses         INTEGER NOT NULL DEFAULT 0,
+  unlocked_chars TEXT[]  NOT NULL DEFAULT ARRAY['ash', 'merrs'],
+  updated_at     TIMESTAMPTZ DEFAULT NOW()
 );
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -49,3 +50,16 @@ END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
 GRANT EXECUTE ON FUNCTION public.increment_user_stat(UUID, TEXT) TO authenticated;
+
+-- Unlock a character for a player (idempotent)
+CREATE OR REPLACE FUNCTION public.unlock_character(uid UUID, char_key TEXT)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE public.profiles
+  SET unlocked_chars = array_append(unlocked_chars, char_key),
+      updated_at = NOW()
+  WHERE id = uid AND NOT (char_key = ANY(unlocked_chars));
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+GRANT EXECUTE ON FUNCTION public.unlock_character(UUID, TEXT) TO authenticated;
