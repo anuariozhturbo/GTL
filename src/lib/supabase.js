@@ -48,3 +48,11 @@ export async function getUnlockedChars(userId) {
 export async function unlockCharacter(userId, charKey) {
   await supabase.rpc('unlock_character', { uid: userId, char_key: charKey })
 }
+
+export async function updateDisplayName(userId, name) {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ display_name: name })
+    .eq('id', userId)
+  return error
+}
