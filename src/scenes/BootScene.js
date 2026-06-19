@@ -334,74 +334,94 @@ export default class BootScene extends Phaser.Scene {
 
         const p = this.drawBody(gr, ox, oy, pose, C)
 
-        // Coat lapels with edge highlight
+        // Coat lapels with gold trim
         gr.fillStyle(0x6d28d9, 1)
-        gr.fillTriangle(p.tX+9, p.tY, p.hCx-3, p.tY+13, p.tX,       p.tY)
-        gr.fillTriangle(p.tX+p.tW-9, p.tY, p.hCx+3, p.tY+13, p.tX+p.tW, p.tY)
-        gr.lineStyle(1, 0x8b5cf6, 0.45)
-        gr.lineBetween(p.tX+9, p.tY, p.hCx-3, p.tY+13)
-        gr.lineBetween(p.tX+p.tW-9, p.tY, p.hCx+3, p.tY+13)
+        gr.fillTriangle(p.tX+9, p.tY, p.hCx-3, p.tY+14, p.tX, p.tY)
+        gr.fillTriangle(p.tX+p.tW-9, p.tY, p.hCx+3, p.tY+14, p.tX+p.tW, p.tY)
+        gr.lineStyle(1.5, 0xa78bfa, 0.65)
+        gr.lineBetween(p.tX+9, p.tY, p.hCx-3, p.tY+14)
+        gr.lineBetween(p.tX+p.tW-9, p.tY, p.hCx+3, p.tY+14)
+        // Gold coat buttons
+        gr.fillStyle(0xfbbf24, 1)
+        gr.fillCircle(p.hCx, p.tY+10, 2.5); gr.fillCircle(p.hCx, p.tY+20, 2.5); gr.fillCircle(p.hCx, p.tY+30, 2.5)
+        gr.fillStyle(0xfef9c3, 0.6)
+        gr.fillCircle(p.hCx-0.5, p.tY+9, 1.2); gr.fillCircle(p.hCx-0.5, p.tY+19, 1.2); gr.fillCircle(p.hCx-0.5, p.tY+29, 1.2)
 
-        // Hair — 5 taller spikes
+        // Hair — 5 dramatic spikes, tallest at center
         gr.fillStyle(0x1a0a00, 1)
-        gr.fillEllipse(p.hCx, p.hCy - p.hR + 4, 30, 14)
+        gr.fillEllipse(p.hCx, p.hCy - p.hR + 4, 32, 14)
+        const ashSH = [9, 13, 17, 13, 9]
         for (let s = 0; s < 5; s++)
-          gr.fillTriangle(p.hCx-10+s*5, p.hCy-p.hR+7, p.hCx-8+s*5, p.hCy-p.hR-7, p.hCx-5+s*5, p.hCy-p.hR+7)
+          gr.fillTriangle(p.hCx-11+s*5, p.hCy-p.hR+7, p.hCx-9+s*5, p.hCy-p.hR-ashSH[s], p.hCx-6+s*5, p.hCy-p.hR+7)
 
-        // Gold crown
+        // Gold crown — taller center spike, 3 gems
         const crX = p.hCx, crY = p.hCy - p.hR + 1
         gr.fillStyle(0xf59e0b, 1)
-        gr.fillRect(crX-10, crY, 20, 6)
-        gr.fillTriangle(crX-10, crY, crX-8, crY-9,  crX-4, crY)
-        gr.fillTriangle(crX-2,  crY, crX,   crY-12, crX+2, crY)
-        gr.fillTriangle(crX+4,  crY, crX+8, crY-9,  crX+10, crY)
-        gr.fillStyle(0xef4444, 1); gr.fillCircle(crX-7, crY+3, 2)
-        gr.fillStyle(0x60a5fa, 1); gr.fillCircle(crX,   crY+3, 2)
-        gr.fillStyle(0xef4444, 1); gr.fillCircle(crX+7, crY+3, 2)
-        // Crown shine
-        gr.fillStyle(0xfde68a, 0.55)
-        gr.fillRect(crX-8, crY+1, 16, 2)
+        gr.fillRect(crX-11, crY, 22, 7)
+        gr.fillTriangle(crX-11, crY, crX-9, crY-10, crX-5, crY)
+        gr.fillTriangle(crX-3,  crY, crX,   crY-16, crX+3, crY)
+        gr.fillTriangle(crX+5,  crY, crX+9, crY-10, crX+11, crY)
+        gr.fillStyle(0xfde68a, 0.65); gr.fillRect(crX-9, crY+1, 18, 2)
+        gr.fillStyle(0xef4444, 1); gr.fillCircle(crX-7, crY+4, 2.5)
+        gr.fillStyle(0xd946ef, 1); gr.fillCircle(crX, crY+4, 3.5)
+        gr.fillStyle(0xef4444, 1); gr.fillCircle(crX+7, crY+4, 2.5)
+        gr.fillStyle(0xf0abfc, 0.8); gr.fillCircle(crX, crY+4, 1.8)
 
         // Face
         this.face(gr, state, p.hCx, p.hCy, C.skin)
 
-        // Sledgehammer — anchored at hand endpoint
+        // Purple glowing eyes (override)
+        const ashEyeA = state === 'attack' || state === 'special' ? 1 : 0.88
+        gr.fillStyle(0x7c3aed, ashEyeA)
+        gr.fillCircle(p.hCx-4, p.hCy-3, 4); gr.fillCircle(p.hCx+4, p.hCy-3, 4)
+        gr.fillStyle(0xddd6fe, ashEyeA)
+        gr.fillCircle(p.hCx-4, p.hCy-3, 2.2); gr.fillCircle(p.hCx+4, p.hCy-3, 2.2)
+        gr.fillStyle(0xffffff, 0.75)
+        gr.fillCircle(p.hCx-3, p.hCy-4, 1); gr.fillCircle(p.hCx+5, p.hCy-4, 1)
+
+        // Sledgehammer — runic engravings, anchored at hand
         const atkT2 = state === 'attack' ? i / (frames.length - 1) : 0
         const hx  = p.raEndX - 3
         const hy2 = p.raEndY - (state === 'attack'  ? [22,20,10, 2,18][i]||10
                                : state === 'special' ? [18,22,16,10][i]||12
                                : 12)
-        // Handle energy glow (brightens toward impact)
         if (state === 'attack' || state === 'special') {
-          gr.fillStyle(C.glow, 0.22 + atkT2 * 0.38)
-          gr.fillRoundedRect(hx-2, hy2, 9, 34, 1)
+          gr.fillStyle(C.glow, 0.28 + atkT2 * 0.48)
+          gr.fillRoundedRect(hx-3, hy2, 11, 40, 2)
         }
-        // Handle wood
-        gr.fillStyle(0x78350f, 1)
-        gr.fillRoundedRect(hx, hy2, 5, 34, 1)
-        gr.fillStyle(0x92400e, 0.4)
-        gr.fillRect(hx+1, hy2, 2, 34)
-        // Hammer head glow
-        gr.fillStyle(C.glow, state === 'attack' ? 0.28 + atkT2 * 0.46 : 0.38)
-        gr.fillRoundedRect(hx-10, hy2-4, 26, 18, 4)
-        // Hammer head
-        gr.fillStyle(0x6b7280, 1)
-        gr.fillRoundedRect(hx-9, hy2-2, 22, 14, 2)
-        gr.fillStyle(0x9ca3af, 0.7)
-        gr.fillRect(hx-7, hy2+1, 16, 5)
-        // Impact spark burst on strike frame
+        // Handle — leather-wrapped
+        gr.fillStyle(0x78350f, 1); gr.fillRoundedRect(hx, hy2, 5, 40, 1)
+        gr.fillStyle(0x4b1a00, 0.55)
+        for (let w = 0; w < 6; w++) gr.fillRect(hx, hy2+2+w*6, 5, 3)
+        gr.fillStyle(0x92400e, 0.4); gr.fillRect(hx+1, hy2, 2, 40)
+        // Head glow
+        gr.fillStyle(C.glow, state === 'attack' ? 0.34 + atkT2 * 0.52 : 0.44)
+        gr.fillRoundedRect(hx-13, hy2-6, 32, 24, 5)
+        // Head — dark steel
+        gr.fillStyle(0x374151, 1); gr.fillRoundedRect(hx-12, hy2-4, 29, 20, 3)
+        gr.fillStyle(0x4b5563, 1); gr.fillRoundedRect(hx-10, hy2-2, 25, 16, 2)
+        gr.fillStyle(0x9ca3af, 0.5); gr.fillRect(hx-8, hy2+2, 18, 6)
+        // Runic engravings
+        const runeA = state === 'attack' ? 0.55 + atkT2*0.4 : 0.28
+        gr.lineStyle(1, 0xc084fc, runeA)
+        gr.lineBetween(hx-6, hy2+2, hx-6, hy2+14); gr.lineBetween(hx-6, hy2+8, hx+1, hy2+8)
+        gr.lineBetween(hx+3, hy2+2, hx+3, hy2+14)
+        gr.lineBetween(hx+7, hy2+2, hx+13, hy2+8); gr.lineBetween(hx+7, hy2+8, hx+13, hy2+14)
+        // Impact burst — bigger
         if (state === 'attack' && i === 3) {
-          gr.lineStyle(1.5, 0xfbbf24, 1)
-          gr.lineBetween(hx+13, hy2-2, hx+21, hy2-14)
-          gr.lineBetween(hx+13, hy2-2, hx+23, hy2-8)
-          gr.lineBetween(hx+13, hy2-2, hx+19, hy2-16)
-          gr.fillStyle(0xfde68a, 0.9)
-          gr.fillCircle(hx+13, hy2-2, 3)
+          gr.lineStyle(2, 0xfbbf24, 1)
+          gr.lineBetween(hx+17, hy2-4, hx+28, hy2-20)
+          gr.lineBetween(hx+17, hy2-4, hx+30, hy2-12)
+          gr.lineBetween(hx+17, hy2-4, hx+24, hy2-22)
+          gr.lineStyle(1.5, 0xc084fc, 0.95)
+          gr.lineBetween(hx+17, hy2-4, hx+26, hy2-16)
+          gr.fillStyle(0xfde68a, 1); gr.fillCircle(hx+17, hy2-4, 5)
+          gr.fillStyle(0xffffff, 0.7); gr.fillCircle(hx+17, hy2-4, 2.5)
         }
         // Rivets
-        gr.fillStyle(0x374151, 1)
-        gr.fillCircle(hx-5, hy2+3, 2); gr.fillCircle(hx+11, hy2+3, 2)
-        gr.fillCircle(hx-5, hy2+9, 2); gr.fillCircle(hx+11, hy2+9, 2)
+        gr.fillStyle(0x6b7280, 1)
+        gr.fillCircle(hx-8, hy2+3, 2.5); gr.fillCircle(hx+15, hy2+3, 2.5)
+        gr.fillCircle(hx-8, hy2+12, 2.5); gr.fillCircle(hx+15, hy2+12, 2.5)
       })
       gr.done(`ash_${state}`)
     })
@@ -480,71 +500,88 @@ export default class BootScene extends Phaser.Scene {
 
         const p = this.drawBody(gr, ox, oy, pose, C)
 
-        // Hood
+        // Hood — with white inner edge
         gr.fillStyle(0x0d0d0d, 1)
-        gr.fillEllipse(p.hCx, p.hCy - p.hR + 2, 34, 18)
-        gr.fillRect(p.hCx - 17, p.hCy - p.hR + 8, 34, p.hR + 2)
-        // Hood depth shadow
-        gr.fillStyle(0x000000, 0.35)
-        gr.fillEllipse(p.hCx, p.hCy - p.hR + 6, 26, 10)
-        // Hood inner edge highlight
-        gr.fillStyle(0x1a1a1a, 0.6)
-        gr.fillEllipse(p.hCx, p.hCy - p.hR + 4, 30, 12)
+        gr.fillEllipse(p.hCx, p.hCy - p.hR + 2, 36, 20)
+        gr.fillRect(p.hCx - 18, p.hCy - p.hR + 8, 36, p.hR + 2)
+        gr.fillStyle(0x000000, 0.4); gr.fillEllipse(p.hCx, p.hCy - p.hR + 6, 28, 12)
+        gr.fillStyle(0x2a2a2a, 0.7); gr.fillEllipse(p.hCx, p.hCy - p.hR + 4, 32, 14)
+        // White inner lining edge
+        gr.fillStyle(0xffffff, 0.12); gr.fillEllipse(p.hCx, p.hCy - p.hR + 3, 34, 16)
 
-        // Brown hair under hood
-        gr.fillStyle(0x5c3a1e, 1)
-        gr.fillEllipse(p.hCx, p.hCy - 4, 22, 10)
+        // Brown hair showing under hood
+        gr.fillStyle(0x5c3a1e, 1); gr.fillEllipse(p.hCx, p.hCy - 4, 22, 10)
 
-        // Blue headband (glows during special)
-        gr.fillStyle(0x1d4ed8, 1)
-        gr.fillRect(p.hCx - 13, p.hCy - 2, 26, 5)
-        gr.fillStyle(state === 'special' ? 0x93c5fd : 0x3b82f6, 0.6)
-        gr.fillRect(p.hCx - 11, p.hCy - 1, 22, 2)
+        // Blue headband (brighter, glows during special/attack)
+        const hbGlow = state === 'special' || state === 'attack'
+        gr.fillStyle(hbGlow ? 0x2563eb : 0x1d4ed8, 1)
+        gr.fillRect(p.hCx - 14, p.hCy - 2, 28, 5)
+        gr.fillStyle(hbGlow ? 0xbfdbfe : 0x3b82f6, hbGlow ? 0.85 : 0.55)
+        gr.fillRect(p.hCx - 12, p.hCy - 1, 24, 2)
 
         // Face
         this.face(gr, state, p.hCx, p.hCy, C.skin)
 
-        // Sword — anchored at hand endpoint
+        // Blue glowing eyes (override)
+        const meEyeA = state === 'attack' || state === 'special' ? 1 : 0.82
+        gr.fillStyle(0x3b82f6, meEyeA)
+        gr.fillCircle(p.hCx-4, p.hCy-3, 4); gr.fillCircle(p.hCx+4, p.hCy-3, 4)
+        gr.fillStyle(0xbae6fd, meEyeA)
+        gr.fillCircle(p.hCx-4, p.hCy-3, 2.2); gr.fillCircle(p.hCx+4, p.hCy-3, 2.2)
+        gr.fillStyle(0xffffff, 0.75)
+        gr.fillCircle(p.hCx-3, p.hCy-4, 1); gr.fillCircle(p.hCx+5, p.hCy-4, 1)
+
+        // Arrow quiver on right side (tips visible above shoulder)
+        const qx = ox + 60, qy = oy + 24
+        gr.fillStyle(0x92400e, 1); gr.fillRoundedRect(qx, qy+6, 9, 26, 3)
+        gr.fillStyle(0x78350f, 0.6); gr.fillRect(qx+1, qy+8, 7, 22)
+        for (let a = 0; a < 3; a++) {
+          gr.fillStyle(0x78350f, 1); gr.fillRect(qx+2+a*2, qy-12, 1.5, 20)
+          const fc = [0xef4444, 0x60a5fa, 0xfbbf24][a]
+          gr.fillStyle(fc, 1)
+          gr.fillTriangle(qx+1.5+a*2, qy-12, qx+2.5+a*2, qy-18, qx+3.5+a*2, qy-12)
+        }
+
+        // Sword — fuller groove, upgraded guard
         const atkT2 = state === 'attack' ? i / (frames.length - 1) : 0
         const sx = p.raEndX - 2
         const sy = p.raEndY - (state === 'attack'  ? [22,20,10, 2,18][i]||14
                                : state === 'special' ? [14,18,12,10][i]||12
                                : 14)
-        // Blade water-glow (intensifies on impact)
-        gr.fillStyle(C.glow, state === 'attack' ? 0.22 + atkT2 * 0.42 : 0.3)
-        gr.fillRect(sx-1, sy, 6, 12)
-        // Blade
-        gr.fillStyle(0xd1d5db, 1)
-        gr.fillRect(sx, sy, 4, 36)
-        gr.fillStyle(0xfafafa, 0.65)
-        gr.fillRect(sx+1, sy, 2, 30)
-        // Water-magic flare at blade tip on impact frame
+        gr.fillStyle(C.glow, state === 'attack' ? 0.28 + atkT2*0.5 : 0.32)
+        gr.fillRect(sx-2, sy, 8, 16)
+        gr.fillStyle(0xd1d5db, 1); gr.fillRect(sx, sy, 4, 40)
+        gr.fillStyle(0xfafafa, 0.7); gr.fillRect(sx+1, sy, 2, 34)
+        gr.fillStyle(0x9ca3af, 0.5); gr.fillRect(sx+3, sy+4, 1, 32)
         if (state === 'attack' && i === 3) {
-          gr.lineStyle(1.5, 0x93c5fd, 0.95)
-          gr.lineBetween(sx+2, sy, sx+10, sy-12)
-          gr.lineBetween(sx+2, sy, sx+12, sy-6)
-          gr.lineBetween(sx+2, sy, sx+8, sy-14)
-          gr.fillStyle(0xbfdbfe, 0.85)
-          gr.fillCircle(sx+2, sy, 3)
+          gr.lineStyle(2, 0x93c5fd, 1)
+          gr.lineBetween(sx+2, sy, sx+13, sy-16); gr.lineBetween(sx+2, sy, sx+15, sy-8)
+          gr.lineBetween(sx+2, sy, sx+9, sy-18)
+          gr.lineStyle(1, 0x60a5fa, 0.8); gr.lineBetween(sx+2, sy, sx+6, sy-20)
+          gr.fillStyle(0xbfdbfe, 0.95); gr.fillCircle(sx+2, sy, 5)
+          gr.fillStyle(0xffffff, 0.6); gr.fillCircle(sx+2, sy, 2.5)
         }
-        // Guard
-        gr.fillStyle(0xf59e0b, 1)
-        gr.fillRect(sx-8, sy+9, 20, 5)
-        gr.fillStyle(0xfbbf24, 0.5)
-        gr.fillRect(sx-6, sy+10, 16, 2)
-        // Grip
-        gr.fillStyle(0x78350f, 1)
-        gr.fillRoundedRect(sx, sy+14, 4, 10, 1)
-        // Pommel
-        gr.fillStyle(0xf59e0b, 1)
-        gr.fillCircle(sx+2, sy+26, 4)
+        // Guard — wider gold
+        gr.fillStyle(0xf59e0b, 1); gr.fillRect(sx-10, sy+12, 24, 5)
+        gr.fillStyle(0xfbbf24, 0.6); gr.fillRect(sx-8, sy+13, 20, 2)
+        // Grip + pommel
+        gr.fillStyle(0x78350f, 1); gr.fillRoundedRect(sx, sy+17, 4, 12, 1)
+        gr.fillStyle(0x4b1a00, 0.5); gr.fillRect(sx, sy+19, 4, 2); gr.fillRect(sx, sy+23, 4, 2)
+        gr.fillStyle(0xf59e0b, 1); gr.fillCircle(sx+2, sy+31, 4.5)
+        gr.fillStyle(0xfef3c7, 0.7); gr.fillCircle(sx+2, sy+30, 2)
 
-        // Bow on left side
-        const bx = ox + 10, by = oy + 44
-        gr.lineStyle(3, 0x92400e, 1)
-        gr.beginPath(); gr.arc(bx, by, 22, -1.0, 1.0); gr.strokePath()
-        gr.lineStyle(1.5, 0xd1d5db, 0.9)
-        gr.lineBetween(bx, by - 22, bx, by + 22)
+        // Bow on left side — bigger, glowing string during special
+        const bx = ox + 6, by = oy + 40
+        gr.lineStyle(4, 0x92400e, 1)
+        gr.beginPath(); gr.arc(bx+4, by, 26, -1.1, 1.1); gr.strokePath()
+        gr.lineStyle(1, 0x78350f, 0.5)
+        gr.beginPath(); gr.arc(bx+4, by, 22, -0.9, 0.9); gr.strokePath()
+        gr.lineStyle(state === 'special' ? 2 : 1.5, state === 'special' ? 0x93c5fd : 0xd1d5db, 0.95)
+        gr.lineBetween(bx+4, by-26, bx+4, by+26)
+        if (state === 'idle' || state === 'walk') {
+          gr.fillStyle(0x78350f, 1); gr.fillRect(bx+3, by-18, 1.5, 36)
+          gr.fillStyle(0xef4444, 1); gr.fillTriangle(bx+2, by-18, bx+3.5, by-24, bx+5, by-18)
+        }
       })
       gr.done(`merrs_${state}`)
     })
@@ -623,102 +660,91 @@ export default class BootScene extends Phaser.Scene {
 
         const p = this.drawBody(gr, ox, oy, pose, C)
 
-        // White sneaker soles
+        // White sneaker soles with stripe
         gr.fillStyle(0xf0f0f0, 1)
-        gr.fillRect(p.llX - p.lW/2 - 1, p.llY + p.llH + 2, p.lW + 4, 4)
-        gr.fillRect(p.rlX - p.lW/2 - 1, p.rlY + p.rlH + 2, p.lW + 4, 4)
+        gr.fillRect(p.llX-p.lW/2-1, p.llY+p.llH+2, p.lW+4, 5)
+        gr.fillRect(p.rlX-p.lW/2-1, p.rlY+p.rlH+2, p.lW+4, 5)
+        gr.fillStyle(0xf59e0b, 0.8)
+        gr.fillRect(p.llX-p.lW/2, p.llY+p.llH+3, p.lW+2, 2)
+        gr.fillRect(p.rlX-p.lW/2, p.rlY+p.rlH+3, p.lW+2, 2)
 
         // Hoodie pocket
-        gr.fillStyle(0x000000, 0.25)
-        gr.fillRoundedRect(p.tX + 5, p.tY + p.tH - 12, 22, 10, 2)
+        gr.fillStyle(0x000000, 0.28); gr.fillRoundedRect(p.tX+5, p.tY+p.tH-13, 22, 11, 2)
 
-        // Messy dark hair (taller spikes)
-        gr.fillStyle(0x2c1a0a, 1)
-        gr.fillEllipse(p.hCx, p.hCy - p.hR + 5, 30, 14)
-        for (let s = 0; s < 5; s++)
-          gr.fillTriangle(p.hCx-12+s*6, p.hCy-p.hR+8, p.hCx-10+s*6, p.hCy-p.hR-6, p.hCx-7+s*6, p.hCy-p.hR+8)
-        // Side tuft
-        gr.fillTriangle(p.hCx-14, p.hCy-4, p.hCx-18, p.hCy-10, p.hCx-10, p.hCy-2)
+        // Backwards snapback cap (on top of hood)
+        const capY = p.hCy - p.hR - 2
+        gr.fillStyle(0x111111, 1); gr.fillEllipse(p.hCx, capY, 38, 15)
+        gr.fillRect(p.hCx - 19, capY - 2, 38, 8)
+        // Brim (backwards — sticks out back-left in sprite orientation)
+        gr.fillStyle(0x000000, 1); gr.fillRoundedRect(p.hCx-21, capY-3, 9, 5, 2)
+        gr.fillStyle(0x1a1a1a, 0.7); gr.fillRect(p.hCx-19, capY-2, 6, 3)
+        // Cap button top
+        gr.fillStyle(0xf59e0b, 1); gr.fillCircle(p.hCx, capY-6, 2.5)
+        // Cap logo on front (now facing side)
+        gr.fillStyle(0xf59e0b, 0.9); gr.fillCircle(p.hCx+8, capY+1, 3.5)
+        gr.fillStyle(0x000000, 0.7); gr.fillCircle(p.hCx+8, capY+1, 2)
 
-        // Face (before shades)
+        // Messy dark hair under cap
+        gr.fillStyle(0x2c1a0a, 1); gr.fillEllipse(p.hCx, p.hCy-p.hR+5, 30, 14)
+        for (let s = 0; s < 4; s++)
+          gr.fillTriangle(p.hCx-10+s*7, p.hCy-p.hR+8, p.hCx-8+s*7, p.hCy-p.hR-5, p.hCx-5+s*7, p.hCy-p.hR+8)
+        gr.fillTriangle(p.hCx-15, p.hCy-3, p.hCx-19, p.hCy-9, p.hCx-10, p.hCy-1)
+
+        // Face
         this.face(gr, state, p.hCx, p.hCy, C.skin)
 
-        // GOLD HEXAGONAL SUNGLASSES — {x,y} points required
+        // Gold hexagonal shades
         const gx = p.hCx, gy = p.hCy - 2
-        // left lens fill (gold frame)
         gr.fillStyle(0xf59e0b, 1)
-        gr.fillPoints([
-          {x:gx-14,y:gy-2},{x:gx-10,y:gy-7},{x:gx-4,y:gy-7},
-          {x:gx-1, y:gy-2},{x:gx-4, y:gy+2},{x:gx-10,y:gy+2}
-        ], true)
-        // left lens dark tint
-        gr.fillStyle(0x000000, 0.6)
-        gr.fillPoints([
-          {x:gx-13,y:gy-2},{x:gx-10,y:gy-6},{x:gx-5,y:gy-6},
-          {x:gx-2, y:gy-2},{x:gx-5, y:gy+1},{x:gx-10,y:gy+1}
-        ], true)
-        // right lens fill (gold frame)
+        gr.fillPoints([{x:gx-14,y:gy-2},{x:gx-10,y:gy-7},{x:gx-4,y:gy-7},{x:gx-1,y:gy-2},{x:gx-4,y:gy+3},{x:gx-10,y:gy+3}], true)
+        gr.fillStyle(0x000000, 0.65)
+        gr.fillPoints([{x:gx-13,y:gy-2},{x:gx-10,y:gy-6},{x:gx-5,y:gy-6},{x:gx-2,y:gy-2},{x:gx-5,y:gy+2},{x:gx-10,y:gy+2}], true)
         gr.fillStyle(0xf59e0b, 1)
-        gr.fillPoints([
-          {x:gx+1, y:gy-2},{x:gx+4, y:gy-7},{x:gx+10,y:gy-7},
-          {x:gx+13,y:gy-2},{x:gx+10,y:gy+2},{x:gx+4, y:gy+2}
-        ], true)
-        // right lens dark tint
-        gr.fillStyle(0x000000, 0.6)
-        gr.fillPoints([
-          {x:gx+2, y:gy-2},{x:gx+5, y:gy-6},{x:gx+9, y:gy-6},
-          {x:gx+12,y:gy-2},{x:gx+9, y:gy+1},{x:gx+5, y:gy+1}
-        ], true)
-        // Bridge + arms of shades
+        gr.fillPoints([{x:gx+1,y:gy-2},{x:gx+4,y:gy-7},{x:gx+10,y:gy-7},{x:gx+13,y:gy-2},{x:gx+10,y:gy+3},{x:gx+4,y:gy+3}], true)
+        gr.fillStyle(0x000000, 0.65)
+        gr.fillPoints([{x:gx+2,y:gy-2},{x:gx+5,y:gy-6},{x:gx+9,y:gy-6},{x:gx+12,y:gy-2},{x:gx+9,y:gy+2},{x:gx+5,y:gy+2}], true)
         gr.fillStyle(0xf59e0b, 1)
-        gr.fillRect(gx-1, gy-1, 2, 3)
-        gr.fillRect(gx-16, gy-1, 2, 3)
-        gr.fillRect(gx+14, gy-1, 2, 3)
-        // Lens shine highlight
-        gr.fillStyle(0xfde68a, 0.35)
+        gr.fillRect(gx-1, gy-1, 2, 3); gr.fillRect(gx-17, gy-1, 2, 3); gr.fillRect(gx+15, gy-1, 2, 3)
+        gr.fillStyle(0xfde68a, 0.4)
         gr.fillPoints([{x:gx-13,y:gy-5},{x:gx-10,y:gy-6},{x:gx-6,y:gy-5},{x:gx-9,y:gy-3}], true)
 
-        // Gold chain with pendant
+        // Gold chain — more links, dice pendant
         gr.fillStyle(0xf59e0b, 1)
-        for (let c = 0; c < 6; c++) gr.fillCircle(p.tX + 6 + c * 4, p.tY + 10, 2)
-        this.dot(gr, 0xf59e0b, p.tX + 26, p.tY + 17, 5)
-        this.dot(gr, 0x18181b, p.tX + 26, p.tY + 17, 3)
-        gr.fillStyle(0xf59e0b, 1)
-        gr.fillRect(p.tX + 25, p.tY + 13, 2, 8)
+        for (let c = 0; c < 9; c++) gr.fillCircle(p.tX+3+c*3, p.tY+9, 1.8)
+        // Dice pendant (square with dots)
+        const pdX = p.tX+6, pdY = p.tY+14
+        gr.fillStyle(0xf59e0b, 1); gr.fillRoundedRect(pdX, pdY, 12, 12, 2)
+        gr.fillStyle(0x111111, 1)
+        gr.fillCircle(pdX+3, pdY+3, 1.4); gr.fillCircle(pdX+9, pdY+3, 1.4)
+        gr.fillCircle(pdX+6, pdY+6, 1.4)
+        gr.fillCircle(pdX+3, pdY+9, 1.4); gr.fillCircle(pdX+9, pdY+9, 1.4)
 
-        // Crossbow — anchored at hand endpoint
+        // Crossbow — scope + gold bolt tip
         const atkT2 = state === 'attack' ? i / (frames.length - 1) : 0
         const cbX = p.raEndX
         const cbY = p.raEndY - (state === 'attack' ? [14,18,6,4,12][i]||8 : 8)
         const ao  = state === 'attack' ? [-2,-6,-10,-8,0][i]||0 : 0
-        // Stock
-        gr.fillStyle(0x78350f, 1)
-        gr.fillRoundedRect(cbX, cbY+5, 22+ao, 8, 2)
-        gr.fillStyle(0x92400e, 0.4)
-        gr.fillRect(cbX+1, cbY+6, 18, 3)
-        // Rail
-        gr.fillStyle(0x374151, 1)
-        gr.fillRect(cbX+4, cbY-5, 8, 18)
-        gr.fillStyle(0x6b7280, 0.6)
-        gr.fillRect(cbX+5, cbY-4, 6, 16)
-        // Limbs
-        gr.lineStyle(2.5, 0x78350f, 1)
-        gr.beginPath(); gr.arc(cbX+8, cbY+9, 13, -0.7, 0.7); gr.strokePath()
-        // String
-        gr.lineStyle(1, 0xd1d5db, 0.9)
-        gr.lineBetween(cbX+8, cbY-4, cbX+8, cbY+22)
-        // Bolt
-        gr.fillStyle(0xd1d5db, 1)
-        gr.fillRect(cbX+6, cbY+2, 12, 3)
-        gr.fillTriangle(cbX+18, cbY+2, cbX+22+ao, cbY+3, cbX+18, cbY+5)
-        // Impact burst on strike frame
+        gr.fillStyle(0x78350f, 1); gr.fillRoundedRect(cbX, cbY+5, 22+ao, 9, 2)
+        gr.fillStyle(0x92400e, 0.4); gr.fillRect(cbX+1, cbY+6, 18, 4)
+        // Scope (new detail)
+        gr.fillStyle(0x1f2937, 1); gr.fillRoundedRect(cbX+4, cbY-9, 14, 5, 2)
+        gr.fillStyle(0x60a5fa, 0.6); gr.fillCircle(cbX+15, cbY-7, 3)
+        gr.fillStyle(0xbae6fd, 0.4); gr.fillCircle(cbX+15, cbY-7, 1.5)
+        gr.fillStyle(0x374151, 1); gr.fillRect(cbX+4, cbY-4, 8, 18)
+        gr.fillStyle(0x6b7280, 0.6); gr.fillRect(cbX+5, cbY-3, 6, 16)
+        gr.lineStyle(3, 0x78350f, 1)
+        gr.beginPath(); gr.arc(cbX+8, cbY+9, 14, -0.75, 0.75); gr.strokePath()
+        gr.lineStyle(1.2, 0xe5e7eb, 0.95); gr.lineBetween(cbX+8, cbY-3, cbX+8, cbY+23)
+        gr.fillStyle(0xd1d5db, 1); gr.fillRect(cbX+6, cbY+3, 14, 3)
+        // Gold bolt tip
+        gr.fillStyle(0xfbbf24, 1); gr.fillTriangle(cbX+20, cbY+3, cbX+26+ao, cbY+4, cbX+20, cbY+6)
         if (state === 'attack' && i === 3) {
-          gr.lineStyle(1.5, 0xfbbf24, 1)
-          gr.lineBetween(cbX+22, cbY+3, cbX+30, cbY-7)
-          gr.lineBetween(cbX+22, cbY+3, cbX+32, cbY)
-          gr.lineBetween(cbX+22, cbY+3, cbX+28, cbY-9)
-          gr.fillStyle(0xfef08a, 0.85)
-          gr.fillCircle(cbX+22, cbY+3, 3)
+          gr.lineStyle(2, 0xfbbf24, 1)
+          gr.lineBetween(cbX+24, cbY+4, cbX+35, cbY-9); gr.lineBetween(cbX+24, cbY+4, cbX+37, cbY+1)
+          gr.lineBetween(cbX+24, cbY+4, cbX+31, cbY-11)
+          gr.lineStyle(1.5, 0xfef08a, 0.8); gr.lineBetween(cbX+24, cbY+4, cbX+33, cbY+12)
+          gr.fillStyle(0xfef08a, 0.95); gr.fillCircle(cbX+24, cbY+4, 5)
+          gr.fillStyle(0xffffff, 0.6); gr.fillCircle(cbX+24, cbY+4, 2.5)
         }
       })
       gr.done(`dice_${state}`)
@@ -908,51 +934,67 @@ export default class BootScene extends Phaser.Scene {
         gr.lineStyle(1.5, 0x7f1d1d, 0.85)
         gr.lineBetween(hCx+4, hCy+3, hCx+10, hCy+9)
 
-        // Battle axe — follows hand endpoint
+        // War paint streaks (orange-red across face)
+        gr.lineStyle(2, 0xea580c, 0.75)
+        gr.lineBetween(hCx-9, hCy-5, hCx-3, hCy+5)
+        gr.lineBetween(hCx+3, hCy-5, hCx+9, hCy+5)
+        gr.lineStyle(1.5, 0xfb923c, 0.5)
+        gr.lineBetween(hCx-12, hCy+1, hCx-5, hCy+7)
+
+        // Shoulder armor pads (over arms)
+        const spY2 = oy + 24 + ty
+        gr.fillStyle(0x1f2937, 1)
+        gr.fillRoundedRect(cx+tl-tW/2-15, spY2-2, 15, 11, 3)
+        gr.fillTriangle(cx+tl-tW/2-13, spY2-2, cx+tl-tW/2-7, spY2-9, cx+tl-tW/2-1, spY2-2)
+        gr.fillStyle(0x374151, 0.7); gr.fillRect(cx+tl-tW/2-13, spY2+3, 11, 3)
+        gr.fillStyle(0x1f2937, 1)
+        gr.fillRoundedRect(cx+tl+tW/2, spY2-2, 15, 11, 3)
+        gr.fillTriangle(cx+tl+tW/2+1, spY2-2, cx+tl+tW/2+7, spY2-9, cx+tl+tW/2+13, spY2-2)
+        gr.fillStyle(0x374151, 0.7); gr.fillRect(cx+tl+tW/2+2, spY2+3, 11, 3)
+
+        // Battle axe — bigger, meaner
         const ax = pose.raEnd ? thRaEndX - 2 : raX + aW + 1
-        const ay = pose.raEnd ? thRaEndY - 30 : raY - 10
-        // Handle glow during attack
+        const ay = pose.raEnd ? thRaEndY - 34 : raY - 12
         if (atkT > 0) {
-          gr.fillStyle(0xef4444, 0.2 + atkT * 0.28)
-          gr.fillRect(ax-1, ay, 8, 50)
+          gr.fillStyle(0xef4444, 0.24 + atkT*0.34)
+          gr.fillRect(ax-2, ay, 10, 58)
         }
-        // Handle with wrapping
-        gr.fillStyle(0x78350f, 1)
-        gr.fillRect(ax, ay, 6, 50)
+        // Handle — wrapped leather
+        gr.fillStyle(0x78350f, 1); gr.fillRect(ax, ay, 6, 56)
         gr.fillStyle(0x92400e, 0.5)
-        for (let w = 0; w < 7; w++) gr.fillRect(ax, ay+3+w*6, 6, 3)
-        gr.fillStyle(0x4b1a00, 0.4)
-        gr.fillRect(ax+1, ay, 3, 50)
-        // Axe head glow during attack
-        if (atkT > 0) {
-          gr.fillStyle(0xef4444, 0.2 + atkT * 0.32)
-          gr.fillTriangle(ax-2, ay, ax+30, ay+14, ax-2, ay+40)
-        }
-        // Axe head
-        gr.fillStyle(0x6b7280, 1)
-        gr.fillTriangle(ax, ay+2, ax+26, ay+14, ax, ay+38)
-        // Blade highlight
-        gr.fillStyle(0xd1d5db, 0.75)
-        gr.fillTriangle(ax+2, ay+4, ax+22, ay+15, ax+2, ay+32)
-        // Blade edge glint
-        gr.fillStyle(0xf9fafb, 0.95)
-        gr.fillTriangle(ax+20, ay+11, ax+26, ay+14, ax+20, ay+22)
-        // Back spike
-        gr.fillStyle(0x6b7280, 1)
-        gr.fillTriangle(ax, ay+16, ax-10, ay+20, ax, ay+28)
+        for (let w = 0; w < 8; w++) gr.fillRect(ax, ay+2+w*6, 6, 3)
+        gr.fillStyle(0x4b1a00, 0.4); gr.fillRect(ax+1, ay, 3, 56)
         // Handle ring
-        gr.fillStyle(0x9ca3af, 1)
-        gr.fillRect(ax-1, ay+8, 8, 4)
-        // Impact sparks on axe strike frame
+        gr.fillStyle(0x9ca3af, 1); gr.fillRect(ax-2, ay+9, 10, 5)
+        gr.fillStyle(0x6b7280, 1); gr.fillRect(ax-1, ay+10, 8, 3)
+        // Axe head glow
+        if (atkT > 0) {
+          gr.fillStyle(0xef4444, 0.24 + atkT*0.38)
+          gr.fillTriangle(ax-4, ay, ax+36, ay+18, ax-4, ay+48)
+        }
+        // Axe head — bigger blade
+        gr.fillStyle(0x374151, 1); gr.fillTriangle(ax-2, ay, ax+36, ay+18, ax-2, ay+48)
+        gr.fillStyle(0x6b7280, 1); gr.fillTriangle(ax, ay+2, ax+32, ay+18, ax, ay+44)
+        // Blade inner highlight
+        gr.fillStyle(0xd1d5db, 0.75); gr.fillTriangle(ax+2, ay+4, ax+26, ay+19, ax+2, ay+38)
+        // Blade edge glint
+        gr.fillStyle(0xf9fafb, 0.98); gr.fillTriangle(ax+24, ay+13, ax+32, ay+18, ax+24, ay+26)
+        // Notch detail
+        gr.fillStyle(0x111111, 0.5); gr.fillTriangle(ax+12, ay+9, ax+17, ay+14, ax+12, ay+19)
+        // Back spike — longer
+        gr.fillStyle(0x374151, 1); gr.fillTriangle(ax-2, ay+5, ax-18, ay+16, ax-2, ay+26)
+        gr.fillStyle(0x4b5563, 1); gr.fillTriangle(ax, ay+7, ax-13, ay+16, ax, ay+24)
+        // Impact sparks — bigger burst
         if (state === 'attack' && i === 3) {
-          gr.lineStyle(2, 0xfbbf24, 1)
-          gr.lineBetween(ax+26, ay+14, ax+36, ay+2)
-          gr.lineBetween(ax+26, ay+14, ax+38, ay+10)
-          gr.lineBetween(ax+26, ay+14, ax+34, ay)
-          gr.lineStyle(1.5, 0xef4444, 0.9)
-          gr.lineBetween(ax+26, ay+14, ax+34, ay+24)
-          gr.fillStyle(0xfef08a, 0.95)
-          gr.fillCircle(ax+26, ay+14, 4)
+          gr.lineStyle(2.5, 0xfbbf24, 1)
+          gr.lineBetween(ax+32, ay+18, ax+44, ay+4)
+          gr.lineBetween(ax+32, ay+18, ax+46, ay+12)
+          gr.lineBetween(ax+32, ay+18, ax+40, ay+2)
+          gr.lineStyle(2, 0xef4444, 0.95)
+          gr.lineBetween(ax+32, ay+18, ax+42, ay+28)
+          gr.lineBetween(ax+32, ay+18, ax+38, ay+30)
+          gr.fillStyle(0xfef08a, 1); gr.fillCircle(ax+32, ay+18, 6)
+          gr.fillStyle(0xffffff, 0.7); gr.fillCircle(ax+32, ay+18, 3)
         }
       })
       gr.done(`thragg_${state}`)
@@ -1510,76 +1552,99 @@ export default class BootScene extends Phaser.Scene {
 
         const p = this.drawBody(gr, ox, oy, pose, C)
 
-        // Torso belt / sash
+        // Shoulder pauldrons (gold armor plates)
         gr.fillStyle(0xb45309, 1)
-        gr.fillRect(p.tX, p.tY + p.tH - 10, p.tW, 8)
-        gr.fillStyle(0xfbbf24, 0.5)
-        gr.fillRect(p.tX + 2, p.tY + p.tH - 8, p.tW - 4, 3)
-        // Belt buckle
-        this.box(gr, 0xfef9c3, p.tX + p.tW / 2 - 5, p.tY + p.tH - 9, 10, 7, 2)
+        gr.fillRoundedRect(p.tX-2, p.tY-5, 12, 8, 3)
+        gr.fillRoundedRect(p.tX+p.tW-10, p.tY-5, 12, 8, 3)
+        gr.fillStyle(0xfbbf24, 0.7)
+        gr.fillRect(p.tX, p.tY-3, 8, 4); gr.fillRect(p.tX+p.tW-8, p.tY-3, 8, 4)
+        // Pauldron spikes
+        gr.fillStyle(0xca8a04, 1)
+        gr.fillTriangle(p.tX+2, p.tY-5, p.tX+5, p.tY-11, p.tX+8, p.tY-5)
+        gr.fillTriangle(p.tX+p.tW-8, p.tY-5, p.tX+p.tW-5, p.tY-11, p.tX+p.tW-2, p.tY-5)
 
-        // Yellow spiky hair
+        // Torso belt / sash
+        gr.fillStyle(0xb45309, 1); gr.fillRect(p.tX, p.tY+p.tH-10, p.tW, 8)
+        gr.fillStyle(0xfbbf24, 0.55); gr.fillRect(p.tX+2, p.tY+p.tH-8, p.tW-4, 3)
+        this.box(gr, 0xfef9c3, p.tX+p.tW/2-5, p.tY+p.tH-9, 10, 7, 2)
+
+        // Yellow spiky hair — alternating heights
         gr.fillStyle(0xfde047, 1)
-        gr.fillEllipse(p.hCx, p.hCy - p.hR + 5, 30, 14)
+        gr.fillEllipse(p.hCx, p.hCy-p.hR+5, 32, 14)
+        const loheHH = [9, 14, 18, 14, 9, 12]
         for (let s = 0; s < 6; s++) {
-          const sx = p.hCx - 13 + s * 5
-          gr.fillTriangle(sx, p.hCy - p.hR + 8, sx + 2, p.hCy - p.hR - 10 - (s % 2) * 5, sx + 5, p.hCy - p.hR + 8)
+          const lsx = p.hCx-13+s*5
+          gr.fillTriangle(lsx, p.hCy-p.hR+8, lsx+2, p.hCy-p.hR-loheHH[s], lsx+5, p.hCy-p.hR+8)
         }
-        // Hair highlight
-        gr.fillStyle(0xfef9c3, 0.55)
-        gr.fillEllipse(p.hCx - 2, p.hCy - p.hR + 4, 14, 6)
+        gr.fillStyle(0xfef9c3, 0.6); gr.fillEllipse(p.hCx-2, p.hCy-p.hR+4, 14, 6)
+
+        // Warrior headband
+        gr.fillStyle(0xb45309, 1); gr.fillRect(p.hCx-14, p.hCy-1, 28, 5)
+        gr.fillStyle(0xfbbf24, 0.7); gr.fillRect(p.hCx-12, p.hCy, 24, 2)
+        gr.fillStyle(0xfde047, 1); gr.fillCircle(p.hCx, p.hCy+2, 3.5)
+        gr.fillStyle(0xfef9c3, 0.85); gr.fillCircle(p.hCx, p.hCy+2, 1.8)
 
         // Face
         this.face(gr, state, p.hCx, p.hCy, C.skin, 0xb45309)
 
-        // Yellow glowing eyes (override face eyes)
-        const eyeA = state === 'attack' || state === 'special' ? 1 : 0.9
-        gr.fillStyle(0xfbbf24, eyeA)
-        gr.fillCircle(p.hCx - 4, p.hCy - 3, 3.5)
-        gr.fillCircle(p.hCx + 4, p.hCy - 3, 3.5)
-        gr.fillStyle(0xfef9c3, eyeA * 0.8)
-        gr.fillCircle(p.hCx - 4, p.hCy - 3, 1.8)
-        gr.fillCircle(p.hCx + 4, p.hCy - 3, 1.8)
+        // Yellow glowing eyes
+        const loEyeA = state === 'attack' || state === 'special' ? 1 : 0.9
+        gr.fillStyle(0xfbbf24, loEyeA)
+        gr.fillCircle(p.hCx-4, p.hCy-3, 4); gr.fillCircle(p.hCx+4, p.hCy-3, 4)
+        gr.fillStyle(0xfef9c3, loEyeA*0.85)
+        gr.fillCircle(p.hCx-4, p.hCy-3, 2.2); gr.fillCircle(p.hCx+4, p.hCy-3, 2.2)
+        gr.fillStyle(0xffffff, 0.75)
+        gr.fillCircle(p.hCx-3, p.hCy-4, 1); gr.fillCircle(p.hCx+5, p.hCy-4, 1)
 
-        // ── SWORD (right hand) ──────────────────────────────────────
+        // ── SWORD (right hand) — rune-glow blade ────────────────────
         const sx = p.raEndX - 2
         const sy = p.raEndY - (state === 'attack'  ? [22,20,10, 2,18][i]||14
                                : state === 'special' ? [14,18,12,10][i]||12
                                : 14)
-        // Blade (black with metallic edge highlight)
-        gr.fillStyle(0x111111, 1); gr.fillRect(sx, sy, 4, 34)
-        gr.fillStyle(0x555555, 0.8); gr.fillRect(sx + 1, sy, 1, 30)
-        gr.fillStyle(0xaaaaaa, 0.5); gr.fillRect(sx + 2, sy, 1, 28)
-        // Impact flash at strike frame — golden sparks contrast against black blade
+        // Blade (black)
+        gr.fillStyle(0x111111, 1); gr.fillRect(sx, sy, 4, 36)
+        gr.fillStyle(0x555555, 0.8); gr.fillRect(sx+1, sy, 1, 32)
+        gr.fillStyle(0xaaaaaa, 0.5); gr.fillRect(sx+2, sy, 1, 30)
+        // Gold rune glow along blade edge
+        const loRuneA = atkT > 0 ? 0.45 + atkT*0.4 : 0.2
+        gr.lineStyle(0.8, 0xfbbf24, loRuneA)
+        gr.lineBetween(sx+3, sy+5, sx+3, sy+14); gr.lineBetween(sx+3, sy+18, sx+3, sy+28)
         if (state === 'attack' && i === 3) {
-          gr.lineStyle(1.5, 0xfef08a, 1)
-          gr.lineBetween(sx + 2, sy, sx + 12, sy - 14)
-          gr.lineBetween(sx + 2, sy, sx + 14, sy - 6)
-          gr.lineBetween(sx + 2, sy, sx + 10, sy - 16)
-          gr.fillStyle(0xfffde7, 0.9); gr.fillCircle(sx + 2, sy, 4)
+          gr.lineStyle(2, 0xfef08a, 1)
+          gr.lineBetween(sx+2, sy, sx+14, sy-16); gr.lineBetween(sx+2, sy, sx+16, sy-8)
+          gr.lineBetween(sx+2, sy, sx+11, sy-18)
+          gr.lineStyle(1.5, 0xfbbf24, 0.85); gr.lineBetween(sx+2, sy, sx+7, sy-20)
+          gr.fillStyle(0xfffde7, 1); gr.fillCircle(sx+2, sy, 5)
+          gr.fillStyle(0xffffff, 0.7); gr.fillCircle(sx+2, sy, 2.5)
         }
         // Guard (black)
-        gr.fillStyle(0x111111, 1); gr.fillRect(sx - 7, sy + 9, 18, 5)
-        gr.fillStyle(0x444444, 0.7); gr.fillRect(sx - 5, sy + 10, 14, 2)
-        // Grip (black) + pommel (dark with gold dot)
-        gr.fillStyle(0x1a1a1a, 1); gr.fillRoundedRect(sx, sy + 14, 4, 10, 1)
-        gr.fillStyle(0x222222, 1); gr.fillCircle(sx + 2, sy + 26, 4)
-        gr.fillStyle(0xfbbf24, 0.9); gr.fillCircle(sx + 2, sy + 26, 2)
+        gr.fillStyle(0x111111, 1); gr.fillRect(sx-8, sy+10, 20, 5)
+        gr.fillStyle(0x444444, 0.7); gr.fillRect(sx-6, sy+11, 16, 2)
+        // Grip + pommel
+        gr.fillStyle(0x1a1a1a, 1); gr.fillRoundedRect(sx, sy+15, 4, 11, 1)
+        gr.fillStyle(0x333333, 0.5); gr.fillRect(sx, sy+17, 4, 2); gr.fillRect(sx, sy+21, 4, 2)
+        gr.fillStyle(0x222222, 1); gr.fillCircle(sx+2, sy+28, 4.5)
+        gr.fillStyle(0xfbbf24, 0.95); gr.fillCircle(sx+2, sy+28, 2.2)
 
-        // ── SPEAR (left hand — tall pole behind body) ───────────────
+        // ── SPEAR (left hand) — taller, more prominent head ─────────
         const spX = p.laEndX
-        const spY = oy + 8  // top of frame (spear rises above head)
-        // Shaft (black)
-        gr.fillStyle(0x111111, 1); gr.fillRect(spX - 2, spY, 4, 72)
-        gr.fillStyle(0x444444, 0.5); gr.fillRect(spX - 1, spY, 2, 68)
-        // Spearhead (black with metallic shine)
+        const spYt = oy + 6
+        // Shaft
+        gr.fillStyle(0x111111, 1); gr.fillRect(spX-2, spYt, 4, 74)
+        gr.fillStyle(0x444444, 0.5); gr.fillRect(spX-1, spYt, 2, 70)
+        // Spearhead — larger triangle
         gr.fillStyle(0x111111, 1)
-        gr.fillTriangle(spX - 6, spY + 14, spX + 2, spY, spX + 7, spY + 14)
-        gr.fillStyle(0x888888, 0.7)
-        gr.fillTriangle(spX - 1, spY + 12, spX + 2, spY + 3, spX + 4, spY + 12)
-        // Crossguard (black)
-        gr.fillStyle(0x111111, 1); gr.fillRect(spX - 8, spY + 14, 16, 4)
-        gr.fillStyle(0x555555, 0.6); gr.fillRect(spX - 6, spY + 15, 12, 2)
+        gr.fillTriangle(spX-8, spYt+16, spX+2, spYt, spX+9, spYt+16)
+        gr.fillStyle(0x888888, 0.75)
+        gr.fillTriangle(spX-2, spYt+14, spX+2, spYt+3, spX+5, spYt+14)
+        gr.fillStyle(0xcccccc, 0.4); gr.fillTriangle(spX+1, spYt+12, spX+2, spYt+5, spX+4, spYt+12)
+        // Crossguard
+        gr.fillStyle(0x111111, 1); gr.fillRect(spX-10, spYt+16, 20, 5)
+        gr.fillStyle(0x555555, 0.65); gr.fillRect(spX-8, spYt+17, 16, 2)
+        // Tip glow during attack/special
+        if (atkT > 0) {
+          gr.fillStyle(0xfde047, 0.18 + atkT*0.25); gr.fillCircle(spX+1, spYt+3, 10)
+        }
       })
       gr.done(`lohe_${state}`)
     })
