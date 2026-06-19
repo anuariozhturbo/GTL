@@ -390,53 +390,128 @@ export default class FightScene extends Phaser.Scene {
   }
 
   spawnExplosion(x, y) {
-    const exp = this.add.image(x, y, 'explosion').setDepth(5).setScale(1.8)
-    this.tweens.add({ targets: exp, scaleX: 2.4, scaleY: 2.4, alpha: 0, duration: 450,
-      onComplete: () => exp.destroy() })
+    // ── Ground scorch (lingers longest) ────────────────────────────
+    const scorch = this.add.graphics().setDepth(3)
+    scorch.fillStyle(0x1a0a00, 0.6)
+    scorch.fillEllipse(x, y + 12, 88, 26)
+    scorch.fillStyle(0x000000, 0.3)
+    scorch.fillEllipse(x, y + 14, 52, 14)
+    this.tweens.add({ targets: scorch, alpha: 0, duration: 1600, delay: 300,
+      ease: 'Quad.In', onComplete: () => scorch.destroy() })
 
-    // Shockwave ring
-    const ring = this.add.graphics().setDepth(6)
-    ring.lineStyle(5, 0xff6600, 1); ring.strokeCircle(0, 0, 18); ring.setPosition(x, y)
-    this.tweens.add({ targets: ring, scaleX: 9, scaleY: 9, alpha: 0, duration: 380,
-      ease: 'Quad.Out', onComplete: () => ring.destroy() })
+    // ── Double shockwave rings ──────────────────────────────────────
+    const ring1 = this.add.graphics().setDepth(9)
+    ring1.lineStyle(7, 0xff8c00, 1); ring1.strokeCircle(0, 0, 12); ring1.setPosition(x, y)
+    this.tweens.add({ targets: ring1, scaleX: 13, scaleY: 13, alpha: 0, duration: 300,
+      ease: 'Quad.Out', onComplete: () => ring1.destroy() })
 
-    // Debris particles
-    for (let i = 0; i < 18; i++) {
-      const angle = (i / 18) * Math.PI * 2
-      const speed = 90 + Math.random() * 200
-      const size  = 3 + Math.random() * 5
-      const cols  = [0xff6600, 0xffcc00, 0xff3300, 0xffffff]
-      const p = this.add.circle(x, y, size, cols[i % cols.length], 1).setDepth(6)
+    const ring2 = this.add.graphics().setDepth(7)
+    ring2.lineStyle(3, 0xff4400, 0.75); ring2.strokeCircle(0, 0, 20); ring2.setPosition(x, y)
+    this.tweens.add({ targets: ring2, scaleX: 9, scaleY: 9, alpha: 0, duration: 500,
+      delay: 50, ease: 'Quad.Out', onComplete: () => ring2.destroy() })
+
+    // ── Layered fireball: dark-red → orange → yellow → white ───────
+    const fb = [
+      { r: 5,  col: 0x7f1d1d, sEnd: 8.5, dur: 580, depth: 5 },
+      { r: 7,  col: 0xdc2626, sEnd: 6.5, dur: 460, depth: 6 },
+      { r: 10, col: 0xea580c, sEnd: 4.5, dur: 370, depth: 7 },
+      { r: 13, col: 0xf97316, sEnd: 3.0, dur: 280, depth: 8 },
+      { r: 14, col: 0xfbbf24, sEnd: 2.0, dur: 210, depth: 9 },
+    ]
+    fb.forEach(({ r, col, sEnd, dur, depth }) => {
+      const c = this.add.circle(x, y, r, col, 1).setDepth(depth)
+      this.tweens.add({ targets: c, scaleX: sEnd, scaleY: sEnd, alpha: 0,
+        duration: dur, ease: 'Quad.Out', onComplete: () => c.destroy() })
+    })
+
+    // ── Bright core flash ───────────────────────────────────────────
+    const flash = this.add.circle(x, y, 16, 0xffffff, 1).setDepth(11)
+    this.tweens.add({ targets: flash, scaleX: 4.2, scaleY: 4.2, alpha: 0,
+      duration: 130, ease: 'Quad.Out', onComplete: () => flash.destroy() })
+
+    // ── Debris — tier 1: fast hot sparks (white/yellow) ────────────
+    for (let i = 0; i < 20; i++) {
+      const angle = (i / 20) * Math.PI * 2 + (Math.random() - 0.5) * 0.5
+      const spd   = 130 + Math.random() * 220
+      const sz    = 1.5 + Math.random() * 2.5
+      const col   = [0xffffff, 0xfef08a, 0xfbbf24, 0xfef9c3][i % 4]
+      const p = this.add.circle(x, y, sz, col, 1).setDepth(10)
       this.tweens.add({ targets: p,
-        x: x + Math.cos(angle) * speed, y: y + Math.sin(angle) * speed,
-        alpha: 0, scaleX: 0.1, scaleY: 0.1,
-        duration: 400 + Math.random() * 250, ease: 'Quad.Out',
+        x: x + Math.cos(angle) * spd, y: y + Math.sin(angle) * spd,
+        alpha: 0, scaleX: 0.05, scaleY: 0.05,
+        duration: 200 + Math.random() * 160, ease: 'Quad.Out',
         onComplete: () => p.destroy() })
     }
 
-    // Center flash
-    const flash = this.add.circle(x, y, 10, 0xffffff, 0.9).setDepth(7)
-    this.tweens.add({ targets: flash, scaleX: 9, scaleY: 9, alpha: 0, duration: 260,
-      onComplete: () => flash.destroy() })
-    this.cameras.main.shake(320, 0.020)
+    // ── Debris — tier 2: slow burning embers (orange/red, fall) ────
+    for (let i = 0; i < 18; i++) {
+      const angle = (i / 18) * Math.PI * 2 + (Math.random() - 0.5) * 0.6
+      const spd   = 55 + Math.random() * 110
+      const sz    = 3 + Math.random() * 5
+      const col   = [0xff6600, 0xea580c, 0xdc2626, 0xff3300][i % 4]
+      const p = this.add.circle(x, y, sz, col, 0.95).setDepth(7)
+      this.tweens.add({ targets: p,
+        x: x + Math.cos(angle) * spd,
+        y: y + Math.sin(angle) * spd + 40 + Math.random() * 30,
+        alpha: 0, scaleX: 0.1, scaleY: 0.1,
+        duration: 420 + Math.random() * 240, ease: 'Quad.In',
+        onComplete: () => p.destroy() })
+    }
+
+    // ── Ground sparks — horizontal scatter along floor ──────────────
+    for (let i = 0; i < 12; i++) {
+      const dir = i < 6 ? 1 : -1
+      const ox2 = (Math.random() - 0.5) * 24
+      const spd = 70 + Math.random() * 160
+      const col = Math.random() > 0.5 ? 0xfbbf24 : 0xff6600
+      const sp = this.add.circle(x + ox2, y + 6, 1.5 + Math.random() * 2, col, 0.9).setDepth(8)
+      this.tweens.add({ targets: sp,
+        x: x + ox2 + dir * spd, y: y + 10 + Math.random() * 18,
+        alpha: 0, scaleX: 0.05, scaleY: 0.05,
+        duration: 220 + Math.random() * 180, ease: 'Quad.Out',
+        onComplete: () => sp.destroy() })
+    }
+
+    // ── Smoke puffs — rise and dissipate ───────────────────────────
+    for (let i = 0; i < 5; i++) {
+      const sx = x + (Math.random() - 0.5) * 44
+      const sy = y - 8 + (Math.random() - 0.5) * 18
+      const smoke = this.add.graphics().setDepth(4)
+      smoke.fillStyle(0x374151, 0.32 - i * 0.04)
+      smoke.fillEllipse(0, 0, 28 + i * 8, 20 + i * 6)
+      smoke.setPosition(sx, sy)
+      this.tweens.add({ targets: smoke,
+        y: sy - 50 - Math.random() * 35,
+        scaleX: 1.9 + Math.random() * 0.6, scaleY: 1.5 + Math.random() * 0.4,
+        alpha: 0, duration: 750 + Math.random() * 450,
+        delay: 60 + i * 55, ease: 'Quad.Out',
+        onComplete: () => smoke.destroy() })
+    }
+
+    this.cameras.main.shake(400, 0.025)
   }
 
   spawnBurnEffect(x, y) {
-    const burn = this.add.image(x, y, 'burn').setDepth(4).setScale(1.2)
-    this.tweens.add({ targets: burn, y: y - 20, alpha: 0, duration: 400,
-      onComplete: () => burn.destroy() })
-    // Rising ember particles
-    for (let i = 0; i < 8; i++) {
-      const ox  = (Math.random() - 0.5) * 36
-      const col = Math.random() > 0.5 ? 0xff6600 : 0xffcc00
-      const p   = this.add.circle(x + ox, y, 2 + Math.random() * 2, col, 0.85).setDepth(5)
+    const burn = this.add.image(x, y, 'burn').setDepth(4).setScale(1.4)
+    this.tweens.add({ targets: burn, y: y - 28, alpha: 0, scaleX: 1.8, scaleY: 1.8,
+      duration: 480, ease: 'Quad.Out', onComplete: () => burn.destroy() })
+    // Rising embers — more of them, varied colors
+    for (let i = 0; i < 14; i++) {
+      const ox  = (Math.random() - 0.5) * 44
+      const col = [0xff6600, 0xffcc00, 0xff3300, 0xfbbf24, 0xef4444][i % 5]
+      const sz  = 1.5 + Math.random() * 3
+      const p   = this.add.circle(x + ox, y, sz, col, 0.9).setDepth(5)
       this.tweens.add({ targets: p,
-        y: y - 30 - Math.random() * 40,
-        x: x + ox + (Math.random() - 0.5) * 20,
-        alpha: 0, scaleX: 0.2, scaleY: 0.2,
-        duration: 350 + Math.random() * 200, ease: 'Quad.Out',
+        y: y - 40 - Math.random() * 55,
+        x: x + ox + (Math.random() - 0.5) * 28,
+        alpha: 0, scaleX: 0.1, scaleY: 0.1,
+        duration: 380 + Math.random() * 280, ease: 'Quad.Out',
         onComplete: () => p.destroy() })
     }
+    // Small flash at contact point
+    const bf = this.add.circle(x, y, 8, 0xff8800, 0.75).setDepth(6)
+    this.tweens.add({ targets: bf, scaleX: 2.5, scaleY: 2.5, alpha: 0,
+      duration: 120, onComplete: () => bf.destroy() })
   }
 
   spawnGlideTrail(x, y, fighter) {
