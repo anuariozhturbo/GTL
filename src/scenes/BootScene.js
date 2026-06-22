@@ -282,11 +282,11 @@ export default class BootScene extends Phaser.Scene {
         { torsoY: 0,  laY:28, raY:28, headY: 0,  laX:-26, raX:22 },
       ],
       glide: [
-        { torsoY:-4,  headY:-3, laY:16, raY:16, laX:-30, raX:26, llH:13, rlH:13 },
-        { torsoY:-8,  headY:-5, laY:10, raY:10, laX:-36, raX:32, llH:11, rlH:11 },
-        { torsoY:-11, headY:-7, laY: 6, raY: 6, laX:-40, raX:36, llH: 9, rlH: 9 },
-        { torsoY:-8,  headY:-5, laY:10, raY:10, laX:-36, raX:32, llH:11, rlH:11 },
-        { torsoY:-4,  headY:-3, laY:16, raY:16, laX:-30, raX:26, llH:13, rlH:13 },
+        { torsoY:-4,  headY:-3, laY:20, raY:20, laX:-14, raX:10, llH:13, rlH:13 },
+        { torsoY:-8,  headY:-5, laY:16, raY:16, laX:-12, raX: 8, llH:11, rlH:11 },
+        { torsoY:-11, headY:-7, laY:12, raY:12, laX:-10, raX: 6, llH: 9, rlH: 9 },
+        { torsoY:-8,  headY:-5, laY:16, raY:16, laX:-12, raX: 8, llH:11, rlH:11 },
+        { torsoY:-4,  headY:-3, laY:20, raY:20, laX:-14, raX:10, llH:13, rlH:13 },
       ],
     }
 
@@ -314,43 +314,89 @@ export default class BootScene extends Phaser.Scene {
           : 26
         const wCx = cx + tl * 0.4, wCy = oy + 40 + ty
 
-        // Wing shadow/base layer
-        gr.fillStyle(0x2d0052, 1)
-        gr.fillTriangle(wCx-8, wCy-8, wCx-wW, wCy+wH, wCx-15, wCy+12)
-        gr.fillTriangle(wCx+8, wCy-8, wCx+wW, wCy+wH, wCx+15, wCy+12)
-        // Wing mid color
-        gr.fillStyle(0x5b21b6, 1)
-        gr.fillTriangle(wCx-7, wCy-6, wCx-wW+6, wCy+wH-5, wCx-13, wCy+10)
-        gr.fillTriangle(wCx+7, wCy-6, wCx+wW-6, wCy+wH-5, wCx+13, wCy+10)
-        // Wing highlight
-        gr.fillStyle(0x8b5cf6, 0.65)
-        gr.fillTriangle(wCx-5, wCy-4, wCx-Math.round(wW*0.58), wCy+Math.round(wH*0.58), wCx-10, wCy+8)
-        gr.fillTriangle(wCx+5, wCy-4, wCx+Math.round(wW*0.58), wCy+Math.round(wH*0.58), wCx+10, wCy+8)
-        // Wing vein lines
-        gr.lineStyle(1, 0xa78bfa, 0.7)
-        gr.lineBetween(wCx-8, wCy-4, wCx-wW+5, wCy+wH-7)
-        gr.lineBetween(wCx+8, wCy-4, wCx+wW-5, wCy+wH-7)
-        gr.lineStyle(1, 0x7c3aed, 0.4)
-        gr.lineBetween(wCx-10, wCy, wCx-Math.round(wW*0.5), wCy+Math.round(wH*0.45))
-        gr.lineBetween(wCx+10, wCy, wCx+Math.round(wW*0.5), wCy+Math.round(wH*0.45))
-
-        // Aura glow
+        // Wing drawing
         if (state === 'glide') {
-          // Soft persistent wind aura — pulses with glideBreath
-          gr.fillStyle(0x8b5cf6, 0.08 + 0.04 * Math.sin((i / 4) * Math.PI))
-          gr.fillEllipse(cx, oy + 52, 70 * glideBreath, 54 * glideBreath)
+          // Elytra-style swept-back wings — flex angle varies per frame like MC elytra
+          const sweepT = [0.35, 0.18, 0.0, 0.18, 0.35][i]  // 0=fully flat/extended, 1=drooped
+          const spY  = wCy - 10
+          const spXL = wCx - 4,  spXR = wCx + 4
+          const ldXL = wCx - Math.round(wW * 0.38)
+          const ldXR = wCx + Math.round(wW * 0.38)
+          const ldY  = wCy - Math.round(wH * (0.30 - sweepT * 0.08))
+          const tpXL = wCx - wW,  tpXR = wCx + wW
+          const tpY  = wCy + Math.round(wH * (0.06 + sweepT * 0.32))
+          const trXL = wCx - 9,   trXR = wCx + 9
+          const trY  = wCy + Math.round(wH * (0.50 + sweepT * 0.08))
+
+          // Drop shadow
+          gr.fillStyle(0x1a0030, 1)
+          gr.fillTriangle(spXL-1,spY+1, ldXL-1,ldY+1, tpXL-1,tpY+1)
+          gr.fillTriangle(spXL-1,spY+1, tpXL-1,tpY+1, trXL-1,trY+1)
+          gr.fillTriangle(spXR+1,spY+1, ldXR+1,ldY+1, tpXR+1,tpY+1)
+          gr.fillTriangle(spXR+1,spY+1, tpXR+1,tpY+1, trXR+1,trY+1)
+          // Dark base
+          gr.fillStyle(0x2d0052, 1)
+          gr.fillTriangle(spXL,spY, ldXL,ldY, tpXL,tpY)
+          gr.fillTriangle(spXL,spY, tpXL,tpY, trXL,trY)
+          gr.fillTriangle(spXR,spY, ldXR,ldY, tpXR,tpY)
+          gr.fillTriangle(spXR,spY, tpXR,tpY, trXR,trY)
+          // Mid color
+          gr.fillStyle(0x5b21b6, 1)
+          gr.fillTriangle(spXL+1,spY+2, ldXL+3,ldY+2, tpXL+3,tpY-2)
+          gr.fillTriangle(spXL+1,spY+2, tpXL+3,tpY-2, trXL+1,trY-3)
+          gr.fillTriangle(spXR-1,spY+2, ldXR-3,ldY+2, tpXR-3,tpY-2)
+          gr.fillTriangle(spXR-1,spY+2, tpXR-3,tpY-2, trXR-1,trY-3)
+          // Highlight (leading/forward panel)
+          gr.fillStyle(0x8b5cf6, 0.65)
+          gr.fillTriangle(spXL+2,spY+4, ldXL+4,ldY+3, tpXL+5,tpY-4)
+          gr.fillTriangle(spXR-2,spY+4, ldXR-4,ldY+3, tpXR-5,tpY-4)
+          // Main spar
+          gr.lineStyle(1.5, 0xa78bfa, 0.8)
+          gr.lineBetween(spXL,spY, tpXL,tpY)
+          gr.lineBetween(spXR,spY, tpXR,tpY)
+          // Trailing edge
+          gr.lineStyle(1, 0xa78bfa, 0.5)
+          gr.lineBetween(spXL,spY, trXL,trY)
+          gr.lineBetween(spXR,spY, trXR,trY)
+          // Leading edge + mid rib
+          gr.lineStyle(1, 0x7c3aed, 0.45)
+          gr.lineBetween(ldXL,ldY, tpXL,tpY)
+          gr.lineBetween(ldXR,ldY, tpXR,tpY)
+          gr.lineBetween(wCx-6,wCy-2, Math.round(ldXL*0.4+tpXL*0.6), Math.round(ldY*0.4+tpY*0.6))
+          gr.lineBetween(wCx+6,wCy-2, Math.round(ldXR*0.4+tpXR*0.6), Math.round(ldY*0.4+tpY*0.6))
+          // Wingtip glow
+          gr.fillStyle(0xa78bfa, 0.22)
+          gr.fillCircle(tpXL, tpY, 5)
+          gr.fillCircle(tpXR, tpY, 5)
+          // Aura
+          gr.fillStyle(0x8b5cf6, 0.08 + 0.04 * Math.sin((i/4)*Math.PI))
+          gr.fillEllipse(cx, oy+52, 70*glideBreath, 54*glideBreath)
           gr.fillStyle(0xc084fc, 0.04)
-          gr.fillEllipse(cx, oy + 52, 100 * glideBreath, 74 * glideBreath)
-          // Feather wisps at wingtips
-          gr.fillStyle(0xa78bfa, 0.18)
-          gr.fillEllipse(cx - wW + 8, wCy + wH - 6, 14, 6)
-          gr.fillEllipse(cx + wW - 8, wCy + wH - 6, 14, 6)
-        } else if (state === 'attack' || state === 'special') {
-          const atkT = state === 'attack' ? i / (frames.length - 1) : 0.4 + 0.2 * (i % 2)
-          gr.fillStyle(C.glow, 0.07 + atkT * 0.16)
-          gr.fillEllipse(cx, oy + 52, 58 + atkT * 24, 42 + atkT * 16)
-          gr.fillStyle(C.glow, 0.04 + atkT * 0.08)
-          gr.fillEllipse(cx, oy + 52, 84 + atkT * 16, 64 + atkT * 10)
+          gr.fillEllipse(cx, oy+52, 100*glideBreath, 74*glideBreath)
+        } else {
+          // Standard triangle wings for all other states
+          gr.fillStyle(0x2d0052, 1)
+          gr.fillTriangle(wCx-8, wCy-8, wCx-wW, wCy+wH, wCx-15, wCy+12)
+          gr.fillTriangle(wCx+8, wCy-8, wCx+wW, wCy+wH, wCx+15, wCy+12)
+          gr.fillStyle(0x5b21b6, 1)
+          gr.fillTriangle(wCx-7, wCy-6, wCx-wW+6, wCy+wH-5, wCx-13, wCy+10)
+          gr.fillTriangle(wCx+7, wCy-6, wCx+wW-6, wCy+wH-5, wCx+13, wCy+10)
+          gr.fillStyle(0x8b5cf6, 0.65)
+          gr.fillTriangle(wCx-5, wCy-4, wCx-Math.round(wW*0.58), wCy+Math.round(wH*0.58), wCx-10, wCy+8)
+          gr.fillTriangle(wCx+5, wCy-4, wCx+Math.round(wW*0.58), wCy+Math.round(wH*0.58), wCx+10, wCy+8)
+          gr.lineStyle(1, 0xa78bfa, 0.7)
+          gr.lineBetween(wCx-8, wCy-4, wCx-wW+5, wCy+wH-7)
+          gr.lineBetween(wCx+8, wCy-4, wCx+wW-5, wCy+wH-7)
+          gr.lineStyle(1, 0x7c3aed, 0.4)
+          gr.lineBetween(wCx-10, wCy, wCx-Math.round(wW*0.5), wCy+Math.round(wH*0.45))
+          gr.lineBetween(wCx+10, wCy, wCx+Math.round(wW*0.5), wCy+Math.round(wH*0.45))
+          if (state === 'attack' || state === 'special') {
+            const atkT = state === 'attack' ? i / (frames.length - 1) : 0.4 + 0.2 * (i % 2)
+            gr.fillStyle(C.glow, 0.07 + atkT * 0.16)
+            gr.fillEllipse(cx, oy + 52, 58 + atkT * 24, 42 + atkT * 16)
+            gr.fillStyle(C.glow, 0.04 + atkT * 0.08)
+            gr.fillEllipse(cx, oy + 52, 84 + atkT * 16, 64 + atkT * 10)
+          }
         }
 
         const p = this.drawBody(gr, ox, oy, pose, C)
@@ -1712,12 +1758,33 @@ export default class BootScene extends Phaser.Scene {
       gr.fillStyle(0xbfdbfe, 0.8); this.star(gr, 48, 24, 6, 12, 5)
       gr.fillStyle(0xffffff, 0.6); this.star(gr, 48, 24, 6, 6, 2)
     })
-    mk('explosion', 480, 80, gr => {
-      [10,22,38,52,44,28,12].forEach((s,f) => {
-        gr.fillStyle(0xcc3300, 0.9); gr.fillCircle(f*68+40, 40, s+4)
-        gr.fillStyle(0xff6600, 1);   gr.fillCircle(f*68+40, 40, s)
-        gr.fillStyle(0xffcc00, 0.9); gr.fillCircle(f*68+40, 40, s*0.55)
-        gr.fillStyle(0xffffff, 0.6); gr.fillCircle(f*68+40, 40, s*0.2)
+    mk('explosion', 560, 96, gr => {
+      const sizes  = [8, 20, 36, 52, 62, 48, 30, 14]
+      const cols   = [
+        [0x7f1d1d, 0xcc3300, 0xff6600, 0xfbbf24, 0xffffff],
+        [0x991100, 0xff3300, 0xff8800, 0xffdd00, 0xffffff],
+        [0xaa1100, 0xff4400, 0xffa000, 0xffe000, 0xffffff],
+        [0xcc2200, 0xff6600, 0xffb200, 0xfff0a0, 0xffffff],
+        [0xdd3300, 0xff7700, 0xffcc00, 0xffffff, 0xffffff],
+        [0xbb2200, 0xff5500, 0xff9900, 0xffee00, 0xffffff],
+        [0x881100, 0xdd3300, 0xff6600, 0xffbb00, 0xffffff],
+        [0x551100, 0xaa2200, 0xdd4400, 0xff8800, 0xffffff],
+      ]
+      sizes.forEach((s, f) => {
+        const cx = f * 70 + 48, cy = 48
+        const [c0,c1,c2,c3,c4] = cols[f]
+        gr.fillStyle(c0, 0.9); gr.fillCircle(cx, cy, s + 10)
+        gr.fillStyle(c1, 1);   gr.fillCircle(cx, cy, s + 4)
+        gr.fillStyle(c2, 0.95); gr.fillCircle(cx, cy, s)
+        gr.fillStyle(c3, 0.85); gr.fillCircle(cx, cy, s * 0.55)
+        gr.fillStyle(c4, 0.7);  gr.fillCircle(cx, cy, s * 0.22)
+        // Irregular edge spikes
+        for (let sp = 0; sp < 6; sp++) {
+          const a = (sp / 6) * Math.PI * 2 + f * 0.4
+          const r = (s + 6) * (0.85 + 0.18 * Math.sin(sp * 2.3))
+          gr.fillStyle(c1, 0.55)
+          gr.fillTriangle(cx, cy, cx + Math.cos(a)*r, cy + Math.sin(a)*r, cx + Math.cos(a+0.35)*r*0.7, cy + Math.sin(a+0.35)*r*0.7)
+        }
       })
     })
     mk('burn', 160, 40, gr => {
