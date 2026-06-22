@@ -9,7 +9,8 @@ import SmartAIController from '../ai/SmartAIController.js'
 import HealthBar   from '../ui/HealthBar.js'
 import RoundUI     from '../ui/RoundUI.js'
 import ControlsHUD from '../ui/ControlsHUD.js'
-import { recordMatch } from '../lib/supabase.js'
+import { recordMatch }                        from '../lib/supabase.js'
+import { onlineSession, clearOnlineSession } from '../lib/onlineSession.js'
 import NeonVoidStage     from '../stages/NeonVoid.js'
 import VolcanoTempleStage from '../stages/VolcanoTemple.js'
 import CyberCityStage    from '../stages/CyberCity.js'
@@ -181,6 +182,37 @@ export default class FightScene extends Phaser.Scene {
     leaveBtn.on('pointerdown', () => this.scene.start('MenuScene'))
     this.input.keyboard.on('keydown-ESC', () => this.scene.start('MenuScene'))
 
+    // Online mode: virtual keyboard for remote fighter + channel input listener
+    if (this.mode === 'online') {
+      this._remoteKeys = {
+        left:    { isDown: false },
+        right:   { isDown: false },
+        up:      { isDown: false, _justDown: false },
+        attack:  { isDown: false, _justDown: false },
+        block:   { isDown: false },
+        special: { isDown: false, _justDown: false },
+        action:  { isDown: false, _justDown: false },
+      }
+      this._remoteReady    = false
+      this._netTimer       = 0
+      this._lastRemoteTime = Date.now()
+      this._disconnected   = false
+
+      onlineSession.channel.on('broadcast', { event: 'input' }, ({ payload }) => {
+        const rk = this._remoteKeys
+        rk.left.isDown       = !!payload.left
+        rk.right.isDown      = !!payload.right
+        rk.up.isDown         = !!payload.up
+        rk.up._justDown      = !!payload.up_j
+        rk.attack._justDown  = !!payload.attack_j
+        rk.block.isDown      = !!payload.block
+        rk.special._justDown = !!payload.special_j
+        rk.action._justDown  = !!payload.action_j
+        this._remoteReady    = true
+        this._lastRemoteTime = Date.now()
+      })
+    }
+
     // Start round
     this.roundActive = false
     this.startRound()
@@ -264,20 +296,65 @@ export default class FightScene extends Phaser.Scene {
 
     this._checkHazards()
 
-    // Player 1 input
-    if (!this.ai1) {
-      this.f1.handleInput(this.keys1)
-      this.handleActionKey(this.f1, this.keys1)
-    } else {
-      this.ai1.update(delta)
-    }
+    if (this.mode === 'online') {
+      // ── Online: local fighter on keyboard, remote fighter on received inputs ──
+      const isP1      = onlineSession.isP1
+      const localF    = isP1 ? this.f1 : this.f2
+      const remoteF   = isP1 ? this.f2 : this.f1
+      const localKeys = isP1 ? this.keys1 : this.keys2
 
-    // Player 2 input
-    if (!this.ai2) {
-      this.f2.handleInput(this.keys2)
-      this.handleActionKey(this.f2, this.keys2)
+      // Snapshot just-down flags BEFORE handleInput consumes them via JustDown()
+      const snap = {
+        left:      localKeys.left.isDown,
+        right:     localKeys.right.isDown,
+        up:        localKeys.up.isDown,
+        up_j:      localKeys.up._justDown      || false,
+        attack_j:  localKeys.attack._justDown  || false,
+        block:     localKeys.block.isDown,
+        special_j: localKeys.special._justDown || false,
+        action_j:  localKeys.action._justDown  || false,
+      }
+
+      localF.handleInput(localKeys)
+      this.handleActionKey(localF, localKeys)
+
+      if (this._remoteReady) {
+        remoteF.handleInput(this._remoteKeys)
+        this.handleActionKey(remoteF, this._remoteKeys)
+        // Clear one-shot flags — isDown state persists for smooth held movement
+        this._remoteKeys.up._justDown      = false
+        this._remoteKeys.attack._justDown  = false
+        this._remoteKeys.special._justDown = false
+        this._remoteKeys.action._justDown  = false
+      }
+
+      // Broadcast local inputs at ~30 fps
+      this._netTimer += delta
+      if (this._netTimer >= 33) {
+        this._netTimer -= 33
+        onlineSession.channel.send({ type: 'broadcast', event: 'input', payload: snap })
+      }
+
+      // Disconnect detection: no packet for 5 s
+      if (this._remoteReady && Date.now() - this._lastRemoteTime > 5000) {
+        this._handleDisconnect()
+      }
     } else {
-      this.ai2.update(delta)
+      // Player 1 input
+      if (!this.ai1) {
+        this.f1.handleInput(this.keys1)
+        this.handleActionKey(this.f1, this.keys1)
+      } else {
+        this.ai1.update(delta)
+      }
+
+      // Player 2 input
+      if (!this.ai2) {
+        this.f2.handleInput(this.keys2)
+        this.handleActionKey(this.f2, this.keys2)
+      } else {
+        this.ai2.update(delta)
+      }
     }
 
     this.f1.update(delta)
@@ -357,6 +434,25 @@ export default class FightScene extends Phaser.Scene {
       p1: this.p1Key, p2: this.p2Key,
       p1Wins: this.p1Wins, p2Wins: this.p2Wins,
     })
+  }
+
+  _handleDisconnect() {
+    if (this._disconnected) return
+    this._disconnected  = true
+    this.roundActive    = false
+    const W = this.scale.width, H = this.scale.height
+    this.add.rectangle(W / 2, H / 2, 520, 110, 0x000000, 0.88).setDepth(50).setScrollFactor(0)
+    this.add.text(W / 2, H / 2 - 14, 'OPPONENT DISCONNECTED', {
+      fontSize: '26px', color: '#ef4444', fontFamily: 'monospace',
+    }).setOrigin(0.5).setDepth(51).setScrollFactor(0)
+    this.add.text(W / 2, H / 2 + 20, 'Returning to menu...', {
+      fontSize: '14px', color: '#888', fontFamily: 'monospace',
+    }).setOrigin(0.5).setDepth(51).setScrollFactor(0)
+    this.time.delayedCall(2800, () => this.scene.start('MenuScene'))
+  }
+
+  shutdown() {
+    if (this.mode === 'online') clearOnlineSession()
   }
 
   // ── VFX spawners (called by fighters) ───────────────────────────

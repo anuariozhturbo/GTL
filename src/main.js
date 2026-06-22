@@ -4,6 +4,7 @@ import AuthScene         from './scenes/AuthScene.js'
 import MenuScene         from './scenes/MenuScene.js'
 import CharSelect        from './scenes/CharSelectScene.js'
 import StageSelectScene  from './scenes/StageSelectScene.js'
+import OnlineLobbyScene  from './scenes/OnlineLobbyScene.js'
 import FightScene        from './scenes/FightScene.js'
 import ResultScene       from './scenes/ResultScene.js'
 
@@ -21,7 +22,7 @@ const config = {
       debug: false,
     }
   },
-  scene: [BootScene, AuthScene, MenuScene, CharSelect, StageSelectScene, FightScene, ResultScene]
+  scene: [BootScene, AuthScene, MenuScene, CharSelect, StageSelectScene, OnlineLobbyScene, FightScene, ResultScene]
 }
 
 export default new Phaser.Game(config)

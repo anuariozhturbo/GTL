@@ -69,46 +69,69 @@ export default class MenuScene extends Phaser.Scene {
 
     // ── Mode buttons ─────────────────────────────────────────────
     const modes = [
-      { label: 'VS  PLAYER VS PLAYER', mode: 'pvp' },
-      { label: 'AI  PLAYER VS AI',      mode: 'pve' },
-      { label: 'AA  AI VS AI',          mode: 'ava' },
+      { label: '🌐  ONLINE RANKED',     mode: 'online' },
+      { label: 'VS  PLAYER VS PLAYER',  mode: 'pvp'    },
+      { label: 'AI  PLAYER VS AI',      mode: 'pve'    },
+      { label: 'AA  AI VS AI',          mode: 'ava'    },
     ]
 
     modes.forEach(({ label, mode }, i) => {
-      const by = 418 + i * 82
+      const by = 390 + i * 74
 
-      const btnBg = this.add.graphics()
+      const btnBg    = this.add.graphics()
       const outerGlow = this.add.graphics()
+
+      const isOnline = mode === 'online'
+      const accentC  = isOnline ? 0x22d3ee : 0x9b59b6
+      const accentH  = isOnline ? '#22d3ee' : '#cc88ff'
 
       const drawBtn = (hovered) => {
         outerGlow.clear()
         btnBg.clear()
         if (hovered) {
-          // Outer purple glow halo
-          outerGlow.lineStyle(10, 0x9b59b6, 0.18)
-          outerGlow.strokeRoundedRect(W / 2 - 234, by - 28, 468, 60, 11)
-          outerGlow.lineStyle(5, 0x9b59b6, 0.32)
-          outerGlow.strokeRoundedRect(W / 2 - 232, by - 26, 464, 56, 10)
-          btnBg.fillStyle(0x1a0048, 1)
-          btnBg.fillRoundedRect(W / 2 - 230, by - 24, 460, 52, 9)
-          btnBg.lineStyle(2, 0x9b59b6, 1)
-          btnBg.strokeRoundedRect(W / 2 - 230, by - 24, 460, 52, 9)
+          outerGlow.lineStyle(10, accentC, 0.18)
+          outerGlow.strokeRoundedRect(W / 2 - 234, by - 28, 468, 56, 11)
+          outerGlow.lineStyle(5, accentC, 0.32)
+          outerGlow.strokeRoundedRect(W / 2 - 232, by - 26, 464, 52, 10)
+          btnBg.fillStyle(isOnline ? 0x001a2e : 0x1a0048, 1)
+          btnBg.fillRoundedRect(W / 2 - 230, by - 24, 460, 48, 9)
+          btnBg.lineStyle(2, accentC, 1)
+          btnBg.strokeRoundedRect(W / 2 - 230, by - 24, 460, 48, 9)
         } else {
           btnBg.fillStyle(0x0a0028, 1)
-          btnBg.fillRoundedRect(W / 2 - 230, by - 24, 460, 52, 9)
-          btnBg.lineStyle(1.5, 0x4a1080, 0.55)
-          btnBg.strokeRoundedRect(W / 2 - 230, by - 24, 460, 52, 9)
+          btnBg.fillRoundedRect(W / 2 - 230, by - 24, 460, 48, 9)
+          btnBg.lineStyle(1.5, isOnline ? 0x0e4f5f : 0x4a1080, 0.55)
+          btnBg.strokeRoundedRect(W / 2 - 230, by - 24, 460, 48, 9)
         }
       }
       drawBtn(false)
 
       const btn = this.add.text(W / 2, by, label, {
-        fontSize: '26px', color: '#888888', fontFamily: 'monospace',
+        fontSize: '24px', color: '#888888', fontFamily: 'monospace',
       }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
-      btn.on('pointerover',  () => { drawBtn(true);  btn.setColor('#cc88ff').setScale(1.04) })
+      btn.on('pointerover',  () => { drawBtn(true);  btn.setColor(accentH).setScale(1.04) })
       btn.on('pointerout',   () => { drawBtn(false); btn.setColor('#888888').setScale(1) })
-      btn.on('pointerdown',  () => this.scene.start('CharSelectScene', { mode }))
+      btn.on('pointerdown',  () => {
+        if (mode === 'online') {
+          const user = this.registry.get('user')
+          if (!user || user.isGuest) {
+            // Flash a "sign in required" hint under the button
+            if (this._onlineLockMsg) return
+            this._onlineLockMsg = this.add.text(W / 2, by + 34, 'Sign in to play online', {
+              fontSize: '12px', color: '#ef4444', fontFamily: 'monospace',
+            }).setOrigin(0.5)
+            this.time.delayedCall(2200, () => {
+              this._onlineLockMsg?.destroy()
+              this._onlineLockMsg = null
+            })
+            return
+          }
+          this.scene.start('OnlineLobbyScene')
+        } else {
+          this.scene.start('CharSelectScene', { mode })
+        }
+      })
     })
 
     // ── Footer ───────────────────────────────────────────────────
