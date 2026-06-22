@@ -183,7 +183,7 @@ export default class FightScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ESC', () => this.scene.start('MenuScene'))
 
     // Online mode: virtual keyboard for remote fighter + channel input listener
-    if (this.mode === 'online') {
+    if (this.mode === 'online' && onlineSession.channel) {
       this._remoteKeys = {
         left:    { isDown: false },
         right:   { isDown: false },
@@ -298,10 +298,11 @@ export default class FightScene extends Phaser.Scene {
 
     if (this.mode === 'online') {
       // ── Online: local fighter on keyboard, remote fighter on received inputs ──
-      const isP1      = onlineSession.isP1
-      const localF    = isP1 ? this.f1 : this.f2
-      const remoteF   = isP1 ? this.f2 : this.f1
-      const localKeys = isP1 ? this.keys1 : this.keys2
+      // Both clients always receive p1=localChar, p2=remoteChar from OnlineLobbyScene,
+      // so f1 is ALWAYS the local player and f2 is ALWAYS the remote player.
+      const localF    = this.f1
+      const remoteF   = this.f2
+      const localKeys = this.keys1
 
       // Snapshot just-down flags BEFORE handleInput consumes them via JustDown()
       const snap = {
@@ -332,7 +333,7 @@ export default class FightScene extends Phaser.Scene {
       this._netTimer += delta
       if (this._netTimer >= 33) {
         this._netTimer -= 33
-        onlineSession.channel.send({ type: 'broadcast', event: 'input', payload: snap })
+        onlineSession.channel?.send({ type: 'broadcast', event: 'input', payload: snap })
       }
 
       // Disconnect detection: no packet for 5 s
