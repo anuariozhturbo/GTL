@@ -235,12 +235,21 @@ export default class AuthScene extends Phaser.Scene {
   async _onSuccess(session) {
     const profile = await getProfile(session.user.id)
     this.registry.set('user', {
-      id:          session.user.id,
-      email:       session.user.email,
-      displayName: profile?.display_name || session.user.email.split('@')[0].toUpperCase().slice(0, 12),
-      isGuest:     false,
-      wins:        profile?.wins   || 0,
-      losses:      profile?.losses || 0,
+      id:             session.user.id,
+      email:          session.user.email,
+      displayName:    profile?.display_name || session.user.email.split('@')[0].toUpperCase().slice(0, 12),
+      isGuest:        false,
+      wins:           profile?.wins        || 0,
+      losses:         profile?.losses      || 0,
+      xp:             profile?.xp          || 0,
+      level:          profile?.level       || 1,
+      winStreak:      profile?.win_streak  || 0,
+      bestStreak:     profile?.best_streak || 0,
+      equippedTitle:  profile?.equipped_title || null,
+      unlockedTitles: profile?.unlocked_titles || [],
+      dailyDate:      profile?.daily_date      || '',
+      dailyProgress:  profile?.daily_progress  || 0,
+      dailyDone:      profile?.daily_done      || false,
     })
     this.scene.start('MenuScene')
   }

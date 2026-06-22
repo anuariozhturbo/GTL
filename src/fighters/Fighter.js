@@ -11,6 +11,7 @@ export default class Fighter extends Phaser.Physics.Arcade.Sprite {
 
     this.hp = config.maxHp
     this.maxHp = config.maxHp
+    this.damageDealt = 0
     this.facing = 1
     this.state = 'idle'
     this.isBlocking = false
@@ -205,7 +206,9 @@ export default class Fighter extends Phaser.Physics.Arcade.Sprite {
       })
     }
 
+    const hpBefore = this.hp
     this.hp = Math.max(0, this.hp - amount)
+    if (attacker) attacker.damageDealt += hpBefore - this.hp
     this.scene.events.emit('hpChanged', this)
     if (this.hp <= 0) this.die()
   }

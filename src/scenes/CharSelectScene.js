@@ -65,25 +65,163 @@ export default class CharSelectScene extends Phaser.Scene {
 
     // ── Background ───────────────────────────────────────────────────
     const bg = this.add.graphics()
-    bg.fillGradientStyle(0x01000a, 0x01000a, 0x09001f, 0x09001f, 1)
+    bg.fillGradientStyle(0x000008, 0x000008, 0x05000e, 0x08001a, 1)
     bg.fillRect(0, 0, W, H)
 
-    // Nebula blobs
-    bg.fillStyle(0x4a1080, 0.09); bg.fillCircle(W / 2, H / 2, 420)
-    bg.fillStyle(0x6b21a8, 0.05); bg.fillCircle(W * 0.1, H * 0.2, 220)
-    bg.fillStyle(0x3b0f6e, 0.07); bg.fillCircle(W * 0.9, H * 0.8, 200)
+    // Deep nebula layers
+    bg.fillStyle(0x200040, 0.20); bg.fillCircle(W * 0.50, H * 0.50, 520)
+    bg.fillStyle(0x150030, 0.22); bg.fillCircle(W * 0.10, H * 0.22, 300)
+    bg.fillStyle(0x0d001f, 0.20); bg.fillCircle(W * 0.90, H * 0.80, 260)
+    bg.fillStyle(0x4a1080, 0.11); bg.fillCircle(W * 0.50, H * 0.40, 340)
+    bg.fillStyle(0x6b21a8, 0.07); bg.fillCircle(W * 0.50, H * 0.38, 210)
+    bg.fillStyle(0x3b0f6e, 0.09); bg.fillCircle(W * 0.85, H * 0.14, 190)
+    bg.fillStyle(0x1d4ed8, 0.04); bg.fillCircle(W * 0.15, H * 0.88, 230)
 
-    // Sparse stars
-    for (let i = 0; i < 60; i++) {
-      bg.fillStyle(0xffffff, Phaser.Math.FloatBetween(0.12, 0.55))
+    // LAYER 1 – Tiny dim stars
+    for (let i = 0; i < 110; i++) {
+      bg.fillStyle(0xffffff, Phaser.Math.FloatBetween(0.06, 0.28))
       bg.fillRect(Phaser.Math.Between(0, W), Phaser.Math.Between(0, H), 1, 1)
     }
+    // LAYER 2 – Medium stars
+    for (let i = 0; i < 32; i++) {
+      bg.fillStyle(0xddd6fe, Phaser.Math.FloatBetween(0.18, 0.48))
+      bg.fillRect(Phaser.Math.Between(0, W), Phaser.Math.Between(0, H), 2, 2)
+    }
+
+    // LAYER 3 – Twinkling animated stars
+    for (let i = 0; i < 9; i++) {
+      const sx  = Phaser.Math.Between(40, W - 40)
+      const sy  = Phaser.Math.Between(40, H - 40)
+      const col = [0xffffff, 0xddd6fe, 0xc4b5fd][i % 3]
+      const sg  = this.add.graphics()
+      sg.fillStyle(col, 0.85); sg.fillRect(sx, sy, 2, 2)
+      sg.fillStyle(col, 0.28); sg.fillRect(sx - 1, sy, 4, 2); sg.fillRect(sx, sy - 1, 2, 4)
+      this.tweens.add({
+        targets: sg, alpha: 0.12,
+        duration: 700 + Math.random() * 2200,
+        yoyo: true, repeat: -1, ease: 'Sine.InOut',
+        delay: Math.random() * 1600,
+      })
+    }
+
+    // LAYER 4 – Floating energy orbs (kept near screen edges so cards are clear)
+    const orbPalette = [0x9b59b6, 0x7c3aed, 0xc084fc, 0x22d3ee, 0xa855f7, 0xe879f9]
+    for (let i = 0; i < 8; i++) {
+      const side = i % 2
+      const ox   = side === 0 ? Phaser.Math.Between(12, 140) : Phaser.Math.Between(W - 140, W - 12)
+      const oy   = Phaser.Math.Between(60, H - 60)
+      const r    = Phaser.Math.Between(2, 7)
+      const orb  = this.add.circle(ox, oy, r, orbPalette[i % orbPalette.length],
+        Phaser.Math.FloatBetween(0.10, 0.28))
+      this.tweens.add({
+        targets: orb,
+        x:       ox + Phaser.Math.FloatBetween(-70, 70),
+        y:       oy + Phaser.Math.FloatBetween(-55, 55),
+        alpha: { from: Phaser.Math.FloatBetween(0.05, 0.14), to: Phaser.Math.FloatBetween(0.22, 0.45) },
+        duration: 3200 + Math.random() * 4400,
+        yoyo: true, repeat: -1, ease: 'Sine.InOut',
+        delay: Math.random() * 2800,
+      })
+    }
+
+    // LAYER 5 – Rising energy wisps
+    const spawnCharWisp = () => {
+      if (!this.scene.isActive('CharSelectScene')) return
+      const wx  = Phaser.Math.Between(W * 0.03, W * 0.97)
+      const col = [0x9b59b6, 0x7c3aed, 0xc084fc][Math.floor(Math.random() * 3)]
+      const wsp = this.add.circle(wx, H + 5, Phaser.Math.Between(1, 4), col,
+        Phaser.Math.FloatBetween(0.12, 0.38))
+      this.tweens.add({
+        targets: wsp,
+        y:     Phaser.Math.Between(H * 0.2, H * 0.7),
+        x:     wx + Phaser.Math.FloatBetween(-35, 35),
+        alpha: 0,
+        duration: Phaser.Math.Between(1900, 4000),
+        ease:    'Quad.Out',
+        onComplete: () => wsp.destroy(),
+      })
+      this.time.delayedCall(Phaser.Math.Between(380, 950), spawnCharWisp)
+    }
+    spawnCharWisp()
+
+    // LAYER 6 – Sci-fi border frame
+    const frame = this.add.graphics()
+    frame.lineStyle(1.5, 0x3d0080, 0.65)
+    frame.strokeRect(14, 14, W - 28, H - 28)
+    frame.lineStyle(1, 0x200050, 0.40)
+    frame.strokeRect(20, 20, W - 40, H - 40)
+    frame.lineStyle(1, 0x4a1080, 0.38)
+    for (let x = 100; x < W - 80; x += 72) {
+      frame.lineBetween(x, 14, x, 22); frame.lineBetween(x, H - 14, x, H - 22)
+    }
+    for (let y = 80; y < H - 60; y += 58) {
+      frame.lineBetween(14, y, 22, y); frame.lineBetween(W - 14, y, W - 22, y)
+    }
+    frame.lineStyle(1.5, 0x6d28d9, 0.78)
+    const bL = 42
+    frame.lineBetween(14, bL + 14, 14, 14); frame.lineBetween(14, 14, bL + 14, 14); frame.lineBetween(18, bL + 10, bL + 10, 18)
+    frame.lineBetween(W-14, bL+14, W-14, 14); frame.lineBetween(W-14, 14, W-bL-14, 14); frame.lineBetween(W-18, bL+10, W-bL-10, 18)
+    frame.lineBetween(14, H-bL-14, 14, H-14); frame.lineBetween(14, H-14, bL+14, H-14); frame.lineBetween(18, H-bL-10, bL+10, H-18)
+    frame.lineBetween(W-14, H-bL-14, W-14, H-14); frame.lineBetween(W-14, H-14, W-bL-14, H-14); frame.lineBetween(W-18, H-bL-10, W-bL-10, H-18)
+
+    // Animated corner gems
+    for (const [cx, cy] of [[14, 14], [W - 14, 14], [14, H - 14], [W - 14, H - 14]]) {
+      const gg = this.add.graphics()
+      gg.fillStyle(0x5b0fa0, 0.90); gg.fillCircle(cx, cy, 7)
+      gg.fillStyle(0xc084fc, 0.70); gg.fillCircle(cx, cy, 4)
+      gg.fillStyle(0xffffff, 0.55); gg.fillCircle(cx - 1.5, cy - 1.5, 1.8)
+      this.tweens.add({
+        targets: gg, scaleX: 1.42, scaleY: 1.42, alpha: 0.52,
+        duration: 1500 + Math.random() * 800,
+        yoyo: true, repeat: -1, ease: 'Sine.InOut',
+        delay: Math.random() * 900,
+      })
+    }
+
+    // Slow CRT scan line (very subtle)
+    const scan = this.add.graphics().setAlpha(0.045)
+    scan.lineStyle(2, 0x7c3aed, 1)
+    scan.lineBetween(0, 0, W, 0)
+    this.tweens.add({ targets: scan, y: H, duration: 10000, repeat: -1, ease: 'Linear' })
+
+    // Occasional shooting stars
+    const spawnShootingStar = () => {
+      if (!this.scene.isActive('CharSelectScene')) return
+      const sX = Phaser.Math.Between(W * 0.05, W * 0.55)
+      const sY = Phaser.Math.Between(0, H * 0.35)
+      const travel = Phaser.Math.Between(160, 290)
+      const slope  = Phaser.Math.FloatBetween(0.28, 0.52)
+      const line   = this.add.graphics().setDepth(2)
+      const draw   = (a) => {
+        line.clear()
+        line.lineStyle(1.5, 0xffffff, a * 0.78)
+        line.lineBetween(0, 0, travel * 0.45, travel * 0.45 * slope)
+        line.lineStyle(1, 0xddd6fe, a * 0.32)
+        line.lineBetween(0, 0, travel * 0.70, travel * 0.70 * slope)
+      }
+      draw(0); line.setPosition(sX, sY)
+      this.tweens.add({
+        targets: line, x: sX + travel * 0.5, y: sY + travel * 0.5 * slope,
+        duration: 95, ease: 'Quad.In',
+        onUpdate: (tw) => draw(tw.progress),
+        onComplete: () => this.tweens.add({
+          targets: line, x: sX + travel, y: sY + travel * slope, alpha: 0, duration: 210,
+          onComplete: () => line.destroy(),
+        }),
+      })
+      this.time.delayedCall(Phaser.Math.Between(7000, 16000), spawnShootingStar)
+    }
+    this.time.delayedCall(Phaser.Math.Between(3000, 7000), spawnShootingStar)
 
     // ── Title ────────────────────────────────────────────────────────
     this.add.text(W / 2, 36, 'SELECT YOUR FIGHTER', {
+      fontSize: '30px', color: '#5b0fa0', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setAlpha(0.45)
+    const titleTxt = this.add.text(W / 2, 36, 'SELECT YOUR FIGHTER', {
       fontSize: '30px', color: '#e2d9f3', fontFamily: 'monospace', fontStyle: 'bold',
       stroke: '#3d0070', strokeThickness: 3,
     }).setOrigin(0.5)
+    this.tweens.add({ targets: titleTxt, alpha: 0.78, duration: 1800, yoyo: true, repeat: -1, ease: 'Sine.InOut' })
 
     const hr = this.add.graphics()
     hr.lineStyle(1, 0x5a1090, 0.6)

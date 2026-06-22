@@ -9,7 +9,7 @@ import SmartAIController from '../ai/SmartAIController.js'
 import HealthBar   from '../ui/HealthBar.js'
 import RoundUI     from '../ui/RoundUI.js'
 import ControlsHUD from '../ui/ControlsHUD.js'
-import { recordMatch }                        from '../lib/supabase.js'
+import { reportMatchResult }                  from '../lib/playerStats.js'
 import { onlineSession, clearOnlineSession } from '../lib/onlineSession.js'
 import NeonVoidStage     from '../stages/NeonVoid.js'
 import VolcanoTempleStage from '../stages/VolcanoTemple.js'
@@ -423,17 +423,15 @@ export default class FightScene extends Phaser.Scene {
 
   endMatch() {
     const winner = this.p1Wins >= ROUNDS_TO_WIN ? 1 : 2
-
-    // Save W/L for logged-in P1 (fire-and-forget)
-    const user = this.registry.get('user')
-    if (user && !user.isGuest && user.id && winner !== 0) {
-      recordMatch(user.id, winner === 1).catch(() => {})
-    }
+    const user   = this.registry.get('user')
 
     this.scene.start('ResultScene', {
       winner, mode: this.mode,
       p1: this.p1Key, p2: this.p2Key,
       p1Wins: this.p1Wins, p2Wins: this.p2Wins,
+      userId:      user && !user.isGuest ? user.id : null,
+      localWon:    winner === 1,
+      damageDealt: this.f1?.damageDealt || 0,
     })
   }
 

@@ -1,4 +1,5 @@
-import { signOut, updateDisplayName } from '../lib/supabase.js'
+import { signOut, updateDisplayName }       from '../lib/supabase.js'
+import { getDailyChallenge, getTodayUTC, equipTitle } from '../lib/playerStats.js'
 
 export default class MenuScene extends Phaser.Scene {
   constructor() { super('MenuScene') }
@@ -78,6 +79,51 @@ export default class MenuScene extends Phaser.Scene {
         delay: Math.random() * 3000,
       })
     }
+
+    // ── LAYER 3b – Rising energy wisps from bottom ───────────────
+    const spawnWisp = () => {
+      if (!this.scene.isActive('MenuScene')) return
+      const wx  = Phaser.Math.Between(W * 0.05, W * 0.95)
+      const col = [0x9b59b6, 0x7c3aed, 0xc084fc, 0x22d3ee, 0xa855f7][Math.floor(Math.random() * 5)]
+      const wisp = this.add.circle(wx, H + 5, Phaser.Math.Between(2, 6), col,
+        Phaser.Math.FloatBetween(0.15, 0.50))
+      this.tweens.add({
+        targets: wisp,
+        y:     Phaser.Math.Between(H * 0.18, H * 0.72),
+        x:     wx + Phaser.Math.FloatBetween(-50, 50),
+        alpha: 0,
+        duration: Phaser.Math.Between(2200, 4800),
+        ease:    'Quad.Out',
+        onComplete: () => wisp.destroy(),
+      })
+      this.time.delayedCall(Phaser.Math.Between(260, 780), spawnWisp)
+    }
+    spawnWisp()
+
+    // ── LAYER 3c – Random energy pulse rings ─────────────────────
+    const spawnPulse = () => {
+      if (!this.scene.isActive('MenuScene')) return
+      const px  = Phaser.Math.Between(W * 0.1, W * 0.9)
+      const py  = Phaser.Math.Between(H * 0.1, H * 0.9)
+      const col = [0x9b59b6, 0x7c3aed, 0x22d3ee, 0xa855f7][Math.floor(Math.random() * 4)]
+      const ring = this.add.graphics()
+      ring.lineStyle(1.5, col, 0.55)
+      ring.strokeCircle(px, py, 8)
+      this.tweens.add({
+        targets: ring, scaleX: 8, scaleY: 8, alpha: 0,
+        duration: Phaser.Math.Between(1200, 2200),
+        ease: 'Quad.Out',
+        onComplete: () => ring.destroy(),
+      })
+      this.time.delayedCall(Phaser.Math.Between(2800, 6500), spawnPulse)
+    }
+    this.time.delayedCall(1200, spawnPulse)
+
+    // ── LAYER 3d – Slow CRT scan line (very subtle) ───────────────
+    const scan = this.add.graphics().setAlpha(0.055)
+    scan.lineStyle(2, 0x7c3aed, 1)
+    scan.lineBetween(0, 0, W, 0)
+    this.tweens.add({ targets: scan, y: H, duration: 9000, repeat: -1, ease: 'Linear' })
 
     // ── LAYER 4 – Border frame ────────────────────────────────────
     const frame = this.add.graphics()
@@ -287,6 +333,46 @@ export default class MenuScene extends Phaser.Scene {
     panelBotG.lineBetween(W / 2 - 180, 636, W / 2 + 180, 636)
     panelBotG.fillStyle(0x9b59b6, 0.5); panelBotG.fillCircle(W / 2, 636, 3)
 
+    // ── DAILY CHALLENGE BANNER ────────────────────────────────────
+    const dailyUser = this.registry.get('user')
+    if (dailyUser && !dailyUser.isGuest && dailyUser.id) {
+      const ch       = getDailyChallenge(dailyUser.id)
+      const today    = getTodayUTC()
+      const isToday  = dailyUser.dailyDate === today
+      const progress = isToday ? (dailyUser.dailyProgress || 0) : 0
+      const done     = isToday && (dailyUser.dailyDone || false)
+      const pct      = Math.min(1, progress / ch.target)
+
+      const bannerG = this.add.graphics()
+      bannerG.fillStyle(0x04000f, 0.55)
+      bannerG.fillRoundedRect(W / 2 - 268, 644, 536, 34, 6)
+      bannerG.lineStyle(1, done ? 0x22c55e : 0x2a0060, 0.50)
+      bannerG.strokeRoundedRect(W / 2 - 268, 644, 536, 34, 6)
+
+      this.add.text(W / 2 - 252, 653, 'DAILY', {
+        fontSize: '10px', color: '#3a0070', fontFamily: 'monospace', fontStyle: 'bold',
+      })
+
+      const chColor = done ? '#22c55e' : '#9b59b6'
+      this.add.text(W / 2 - 210, 653, ch.desc, {
+        fontSize: '11px', color: chColor, fontFamily: 'monospace',
+      })
+
+      if (done) {
+        this.add.text(W / 2 + 108, 653, '✓ DONE  +200 XP', {
+          fontSize: '11px', color: '#22c55e', fontFamily: 'monospace', fontStyle: 'bold',
+        })
+      } else {
+        this.add.text(W / 2 + 108, 653, `${Math.min(progress, ch.target)}/${ch.target}`, {
+          fontSize: '11px', color: '#5a1090', fontFamily: 'monospace',
+        })
+        // Mini progress bar
+        const bx = W / 2 + 148, bw = 80, bh = 6, byt = 661
+        bannerG.fillStyle(0x150030, 1); bannerG.fillRoundedRect(bx, byt, bw, bh, 2)
+        bannerG.fillStyle(0x7c3aed, 0.85); bannerG.fillRoundedRect(bx, byt, bw * pct, bh, 2)
+      }
+    }
+
     // ── SHOOTING STARS (periodic) ─────────────────────────────────
     const spawnStar = () => {
       if (!this.scene.isActive('MenuScene')) return
@@ -335,35 +421,112 @@ export default class MenuScene extends Phaser.Scene {
     // ── USER BADGE + SETTINGS ─────────────────────────────────────
     const user = this.registry.get('user')
     if (user) {
-      const infoStr = user.isGuest
-        ? '○ GUEST'
-        : `● ${user.displayName}  ${user.wins}W · ${user.losses}L`
-      this._badgeText = this.add.text(W - 62, 22, infoStr, {
-        fontSize: '12px',
-        color: user.isGuest ? '#333' : '#7c3aed',
-        fontFamily: 'monospace',
-      }).setOrigin(1, 0)
+      let infoStr, infoColor
+      if (user.isGuest) {
+        infoStr   = '○ GUEST'
+        infoColor = '#333'
+      } else {
+        const rank   = this._getRankName(user.wins || 0)
+        const lvl    = `LVL ${user.level || 1}`
+        const streak = (user.winStreak || 0) > 1 ? `  ↑${user.winStreak}` : ''
+        infoStr   = `● ${user.displayName}  ${lvl}  [${rank}]${streak}`
+        infoColor = '#7c3aed'
+      }
+      // ── Player card (top-right) ───────────────────────────────────
+      if (!user.isGuest) {
+        const rank      = this._getRankName(user.wins || 0)
+        const lvl       = `LVL ${user.level || 1}`
+        const streak    = (user.winStreak || 0) > 1 ? `  ↑${user.winStreak}` : ''
+        const rankColors = { BRONZE:'#cd7f32', SILVER:'#c0c0c0', GOLD:'#ffd700', DIAMOND:'#b9f2ff' }
+        const rankColor  = rankColors[rank] || '#9b59b6'
 
-      const gearBtn = this.add.text(W - 22, 20, '⚙', {
-        fontSize: '20px', color: '#3a0070', fontFamily: 'monospace',
-      }).setOrigin(1, 0).setInteractive({ useHandCursor: true })
-      gearBtn.on('pointerover',  () => gearBtn.setColor('#cc88ff'))
-      gearBtn.on('pointerout',   () => gearBtn.setColor('#3a0070'))
-      gearBtn.on('pointerdown',  () => this._openSettings(W, H, user))
+        // Card: name + level row, gear icon on right edge
+        const cardW = 290, cardH = 54, cardX = W - cardW - 14, cardY = 14
+        const cardG = this.add.graphics()
+        const drawCard = (hover) => {
+          cardG.clear()
+          cardG.fillStyle(hover ? 0x1a0048 : 0x06000f, 0.90)
+          cardG.fillRoundedRect(cardX, cardY, cardW, cardH, 8)
+          cardG.lineStyle(1.5, hover ? 0x9b59b6 : 0x3d0070, hover ? 0.9 : 0.55)
+          cardG.strokeRoundedRect(cardX, cardY, cardW, cardH, 8)
+          // rank color accent left bar
+          cardG.fillStyle(Phaser.Display.Color.HexStringToColor(rankColor).color, 0.85)
+          cardG.fillRoundedRect(cardX, cardY, 4, cardH, 8)
+        }
+        drawCard(false)
+
+        this._badgeText = this.add.text(cardX + 14, cardY + 8, `● ${user.displayName}`, {
+          fontSize: '14px', color: '#e2d9f3', fontFamily: 'monospace', fontStyle: 'bold',
+        })
+        this.add.text(cardX + 14, cardY + 30, `${lvl}  [${rank}]${streak}`, {
+          fontSize: '11px', color: rankColor, fontFamily: 'monospace',
+        })
+        if (user.equippedTitle) {
+          this.add.text(cardX + cardW - 38, cardY + 30, user.equippedTitle, {
+            fontSize: '10px', color: '#ffd700', fontFamily: 'monospace',
+          }).setOrigin(1, 0)
+        }
+
+        // Gear icon inside card, right side
+        const gearTxt = this.add.text(cardX + cardW - 10, cardY + cardH / 2, '⚙', {
+          fontSize: '18px', color: '#5a2090', fontFamily: 'monospace',
+        }).setOrigin(1, 0.5).setInteractive({ useHandCursor: true })
+        gearTxt.on('pointerover',  () => { gearTxt.setColor('#cc88ff') })
+        gearTxt.on('pointerout',   () => { gearTxt.setColor('#5a2090') })
+        gearTxt.on('pointerdown',  () => this._openSettings(W, H, user))
+
+        // Card click zone (excluding gear area) → Profile
+        const hitZone = this.add.zone(cardX, cardY, cardW - 36, cardH).setOrigin(0).setInteractive({ useHandCursor: true })
+        hitZone.on('pointerover',  () => drawCard(true))
+        hitZone.on('pointerout',   () => drawCard(false))
+        hitZone.on('pointerdown',  () => this.scene.start('ProfileScene'))
+
+      } else {
+        this._badgeText = this.add.text(W - 18, 22, '○ GUEST', {
+          fontSize: '12px', color: '#444', fontFamily: 'monospace',
+        }).setOrigin(1, 0)
+      }
     }
+  }
+
+  _getRankName(wins) {
+    if (wins >= 75) return 'DIAMOND'
+    if (wins >= 30) return 'GOLD'
+    if (wins >= 10) return 'SILVER'
+    return 'BRONZE'
   }
 
   _openSettings(W, H, user) {
     if (this._settingsOpen) return
     this._settingsOpen = true
 
+    // Build titles section HTML
+    const titles   = user.isGuest ? [] : (user.unlockedTitles || [])
+    const equipped = user.equippedTitle || null
+    let titlesHtml = ''
+    if (titles.length === 0) {
+      titlesHtml = `<div style="color:#2a0050;font-size:11px;letter-spacing:1px;">Get a 3-win streak to unlock your first title</div>`
+    } else {
+      titlesHtml = titles.map(t => {
+        const isEq = t === equipped
+        return `<button id="title-${t.replace(/\s/g,'_')}" data-title="${t}" style="
+          display:block;width:100%;margin-bottom:6px;
+          background:${isEq ? '#2a0060' : '#080020'};
+          border:1.5px solid ${isEq ? '#9b59b6' : '#2a0060'};
+          color:${isEq ? '#ffd700' : '#6a3090'};
+          padding:7px 12px;cursor:pointer;font-family:'Courier New',monospace;
+          font-size:12px;font-weight:bold;border-radius:5px;letter-spacing:3px;
+          text-align:left;">${isEq ? '▶ ' : '  '}${t}${isEq ? '  ← equipped' : ''}</button>`
+      }).join('')
+    }
+
     const MODAL_HTML = `
 <style>
   #cc-settings * { box-sizing: border-box; }
   #cc-settings button { transition: background 0.15s, box-shadow 0.15s, color 0.15s; }
-  #btn-save:hover  { background:#7c3aed !important; box-shadow:0 0 18px rgba(155,89,182,0.8); }
+  #btn-save:hover    { background:#7c3aed !important; box-shadow:0 0 18px rgba(155,89,182,0.8); }
   #btn-signout:hover { background:#3d0000 !important; border-color:#ff4444 !important; color:#ff8888 !important; }
-  #btn-close:hover { color:#cc88ff !important; }
+  #btn-close:hover   { color:#cc88ff !important; }
   #field-nick::placeholder { color:#4a2070; }
 </style>
 <div id="cc-settings" style="
@@ -372,7 +535,9 @@ export default class MenuScene extends Phaser.Scene {
   border:1.5px solid #4a0e8a;
   border-radius:12px;
   padding:28px 28px 22px;
-  width:320px;
+  width:340px;
+  max-height:82vh;
+  overflow-y:auto;
   box-shadow:0 0 40px rgba(91,15,160,0.45),inset 0 0 30px rgba(20,0,50,0.5);
   color:#e9d5ff;
   position:relative;
@@ -397,6 +562,9 @@ export default class MenuScene extends Phaser.Scene {
     font-size:14px;font-weight:bold;border-radius:6px;margin-bottom:12px;letter-spacing:3px;
     ${user.isGuest ? 'opacity:0.3;pointer-events:none;' : ''}">SAVE NAME</button>
   <div style="border-top:1px solid #1a0040;margin-bottom:12px;"></div>
+  <div style="font-size:11px;color:#5a1090;letter-spacing:2px;margin-bottom:8px;">YOUR TITLES</div>
+  <div id="titles-list">${titlesHtml}</div>
+  <div style="border-top:1px solid #1a0040;margin:14px 0 12px;"></div>
   <button id="btn-signout" style="width:100%;background:#0a0000;border:1.5px solid #4a0000;
     color:#aa3333;padding:11px;cursor:pointer;font-family:'Courier New',monospace;
     font-size:14px;font-weight:bold;border-radius:6px;letter-spacing:3px;">SIGN OUT</button>
@@ -407,7 +575,7 @@ export default class MenuScene extends Phaser.Scene {
 
     this._settingsDom = this.add.dom(W / 2, H / 2).createFromHTML(MODAL_HTML).setDepth(11)
 
-    this._modalZone = this.add.zone(W / 2, H / 2, 360, 320).setDepth(12).setInteractive()
+    this._modalZone = this.add.zone(W / 2, H / 2, 380, 520).setDepth(12).setInteractive()
 
     const nickEl = this._settingsDom.getChildByID('field-nick')
     nickEl.addEventListener('focus', () => { nickEl.style.borderColor = '#9b59b6' })
@@ -416,7 +584,8 @@ export default class MenuScene extends Phaser.Scene {
 
     this._settingsDom.addListener('click')
     this._settingsDom.on('click', async e => {
-      const id = e.target.id || e.target.closest('button')?.id
+      const target = e.target.closest('button')
+      const id = target?.id || e.target.id
       if (id === 'btn-close') {
         this._closeSettings()
       } else if (id === 'btn-save') {
@@ -426,6 +595,8 @@ export default class MenuScene extends Phaser.Scene {
         if (!user.isGuest) await signOut()
         this.registry.remove('user')
         this.scene.start('AuthScene')
+      } else if (target?.dataset?.title) {
+        await this._equipTitle(user, target.dataset.title)
       }
     })
 
@@ -462,14 +633,38 @@ export default class MenuScene extends Phaser.Scene {
 
     user.displayName = name
     this.registry.set('user', user)
-    if (this._badgeText) {
-      this._badgeText.setText(`● ${user.displayName}  ${user.wins}W · ${user.losses}L`)
-    }
+    this._refreshBadge(user)
 
     msgEl.style.color = '#a78bfa'
     msgEl.textContent = '✓ SAVED'
     saveBtn.textContent = 'SAVE NAME'
     saveBtn.disabled = false
+  }
+
+  async _equipTitle(user, title) {
+    if (user.isGuest || !user.id) return
+    user.equippedTitle = title
+    this.registry.set('user', user)
+    this._refreshBadge(user)
+    await equipTitle(user.id, title).catch(() => {})
+
+    // Refresh title button highlights inside the modal
+    const list = this._settingsDom?.getChildByID('titles-list')
+    if (list) {
+      list.querySelectorAll('button[data-title]').forEach(btn => {
+        const t    = btn.dataset.title
+        const isEq = t === title
+        btn.style.background    = isEq ? '#2a0060' : '#080020'
+        btn.style.borderColor   = isEq ? '#9b59b6' : '#2a0060'
+        btn.style.color         = isEq ? '#ffd700' : '#6a3090'
+        btn.textContent         = (isEq ? '▶ ' : '  ') + t + (isEq ? '  ← equipped' : '')
+      })
+    }
+  }
+
+  _refreshBadge(user) {
+    if (!this._badgeText) return
+    this._badgeText.setText(`● ${user.displayName}`)
   }
 
   _closeSettings() {
