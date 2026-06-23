@@ -3,6 +3,9 @@ import Merrs  from '../fighters/Merrs.js'
 import Dice   from '../fighters/Dice.js'
 import Thragg from '../fighters/Thragg.js'
 import Lohe   from '../fighters/Lohe.js'
+import Trackstar from '../fighters/Trackstar.js'
+import Kendi from '../fighters/Kendi.js'
+import Overclock from '../fighters/Overclock.js'
 import { FIGHTER_CONFIGS } from '../fighters/configs.js'
 import AIController      from '../ai/AIController.js'
 import SmartAIController from '../ai/SmartAIController.js'
@@ -16,13 +19,16 @@ import VolcanoTempleStage from '../stages/VolcanoTemple.js'
 import CyberCityStage    from '../stages/CyberCity.js'
 import SpaceStationStage from '../stages/SpaceStation.js'
 
-const FIGHTER_CLASSES = { ash: Ash, merrs: Merrs, dice: Dice, thragg: Thragg, lohe: Lohe }
+const FIGHTER_CLASSES = { ash: Ash, merrs: Merrs, dice: Dice, thragg: Thragg, lohe: Lohe, trackstar: Trackstar, kendi: Kendi, overclock: Overclock }
 const AI_PROFILES = {
   ash:    { aggression: 0.55, reactionMs: 220, attackRange: 130, preferredRange: 260 },
   merrs:  { aggression: 0.65, reactionMs: 180, attackRange: 140, preferredRange: 320 },
   dice:   { aggression: 0.60, reactionMs: 200, attackRange: 130, preferredRange: 300 },
   thragg: { aggression: 0.75, reactionMs: 250, attackRange: 140, preferredRange: 200 },
   lohe:   { aggression: 0.70, reactionMs: 210, attackRange: 145, preferredRange: 270 },
+  trackstar: { aggression: 0.85, reactionMs: 150, attackRange: 118, preferredRange: 180 },
+  kendi: { aggression: 0.72, reactionMs: 170, attackRange: 128, preferredRange: 360 },
+  overclock: { aggression: 0.88, reactionMs: 120, attackRange: 165, preferredRange: 210 },
 }
 
 const DIFFICULTY_MOD = {
@@ -124,6 +130,11 @@ export default class FightScene extends Phaser.Scene {
       this.ai1.stratTimer = 2200
       this.ai2.strategy = 'aerial'
       this.ai2.stratTimer = 2800
+    } else if (this.mode === 'boss') {
+      this.ai1 = null
+      this.ai2 = new SmartAIController(this.f2, p2Profile)
+      this.ai2.strategy = 'pressure'
+      this.ai2.stratTimer = 2600
     } else {
       this.ai1 = null
       this.ai2 = (this.mode === 'pve') ? new AIController(this.f2, p2Profile) : null
@@ -158,6 +169,9 @@ export default class FightScene extends Phaser.Scene {
       dice:   { name: 'DICE',   color: 0xf59e0b },
       thragg: { name: 'THRAGG', color: 0xef4444 },
       lohe:   { name: 'LOHE',   color: 0xfde047 },
+      trackstar: { name: 'TRACKSTAR', color: 0xfacc15 },
+      kendi: { name: 'KENDI', color: 0x38bdf8 },
+      overclock: { name: 'OVERCLOCK', color: 0xf97316 },
     }
     const user = this.registry.get('user')
     const p1Name = (!user || user.isGuest) ? null : user.displayName
@@ -225,6 +239,9 @@ export default class FightScene extends Phaser.Scene {
       { key: 'dice',   states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'thragg', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'lohe',   states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
+      { key: 'trackstar', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
+      { key: 'kendi', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
+      { key: 'overclock', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
     ]
     const rates = { idle:8, walk:12, jump:10, attack:18, block:10, hurt:14, die:8, special:14, glide:10 }
     const loops = { idle:true, walk:true, jump:false, attack:false, block:true, hurt:false, die:false, special:false, glide:true }

@@ -247,6 +247,7 @@ export default class AuthScene extends Phaser.Scene {
       bestStreak:     profile?.best_streak || 0,
       equippedTitle:  profile?.equipped_title || null,
       unlockedTitles: profile?.unlocked_titles || [],
+      unlockedChars:  profile?.unlocked_chars || [],
       dailyDate:      profile?.daily_date      || '',
       dailyProgress:  profile?.daily_progress  || 0,
       dailyDone:      profile?.daily_done      || false,
@@ -257,6 +258,7 @@ export default class AuthScene extends Phaser.Scene {
   _guest() {
     this.registry.set('user', {
       id: null, email: null, displayName: 'PLAYER', isGuest: true, wins: 0, losses: 0,
+      unlockedChars: [],
     })
     this.scene.start('MenuScene')
   }

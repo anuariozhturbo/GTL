@@ -36,7 +36,7 @@ export default class Fighter extends Phaser.Physics.Arcade.Sprite {
     this.wasGrounded = true
 
     // Foot-glow ellipse (subtle shadow under feet)
-    const AURA_COLORS = { ash: 0x9b59b6, merrs: 0x60a5fa, dice: 0xf59e0b, thragg: 0xef4444 }
+    const AURA_COLORS = { ash: 0x9b59b6, merrs: 0x60a5fa, dice: 0xf59e0b, thragg: 0xef4444, trackstar: 0xfacc15, kendi: 0x38bdf8, overclock: 0xf97316 }
     const auraColor = AURA_COLORS[key] || 0x9b59b6
     this._aura = scene.add.ellipse(x, y + 38, 64, 10, auraColor, 0.28).setDepth(0)
     this._startAuraTween()

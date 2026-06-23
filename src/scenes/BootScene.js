@@ -223,6 +223,9 @@ export default class BootScene extends Phaser.Scene {
     this.makeViper()
     this.makeNexus()
     this.makeLohe()
+    this.makeOverclock()
+    this.makeTrackstar()
+    this.makeKendi()
     this.makeShield()
     this.makeEffects()
   }
@@ -1720,6 +1723,368 @@ export default class BootScene extends Phaser.Scene {
   // ══════════════════════════════════════════════════════════════════
   // SHIELD + EFFECTS
   // ══════════════════════════════════════════════════════════════════
+  makeOverclock() {
+    const C = {
+      body: 0x27272a,
+      pants: 0x18181b,
+      skin: 0x52525b,
+      shoe: 0x0a0a0a,
+      glow: 0xf97316,
+      lSleeve: 0x3f3f46,
+      rSleeve: 0x3f3f46,
+      tW: 38,
+      tH: 42,
+      lW: 14,
+      aW: 14,
+      hR: 15,
+    }
+
+    const POSES = {
+      idle: [
+        { torsoLean: 0, torsoY: 0, laY:28, raY:28 },
+        { torsoLean: 0, torsoY:-1, laY:27, raY:27 },
+        { torsoLean: 0, torsoY:-2, laY:26, raY:26 },
+        { torsoLean: 0, torsoY:-1, laY:27, raY:27 },
+      ],
+      walk: [
+        { torsoLean: 4, laY:18, raY:42, llY:52, rlY:68, llH:36, rlH:18 },
+        { torsoLean: 6, laY:14, raY:48, llY:46, rlY:76, llH:42, rlH:10 },
+        { torsoLean: 3, laY:22, raY:36, llY:56, rlY:64, llH:30, rlH:24 },
+        { torsoLean:-3, laY:36, raY:22, llY:64, rlY:56, llH:24, rlH:30 },
+        { torsoLean:-6, laY:48, raY:14, llY:76, rlY:46, llH:10, rlH:42 },
+        { torsoLean:-4, laY:42, raY:18, llY:68, rlY:52, llH:18, rlH:36 },
+      ],
+      jump: [
+        { torsoY: 6, torsoLean:-2, laY:34, raY:34, llY:74, rlY:74, llH:10, rlH:10 },
+        { torsoY:-9, headY:-3, laY:10, raY:10, llY:80, rlY:80, llH: 6, rlH: 6 },
+        { torsoY:-2, headY:-1, laY:20, raY:20, llY:70, rlY:70, llH:20, rlH:20 },
+      ],
+      attack: [
+        { torsoLean:-8, raX:10, raY:14, laY:36 },
+        { torsoLean:-12, raEnd:{x:42,y:18}, laY:32, headY:-3 },
+        { torsoLean: 8, raEnd:{x:65,y:24}, laY:28 },
+        { torsoLean: 20, raEnd:{x:82,y:34}, laY:24, headY: 3 },
+        { torsoLean: 9, raEnd:{x:70,y:50}, laY:30 },
+      ],
+      block: [
+        { torsoLean:-5, laX:-38, laY:18, laH:18, raY:34 },
+        { torsoLean:-7, laX:-40, laY:16, laH:16, raY:34 },
+        { torsoLean:-7, laX:-40, laY:16, laH:16, raY:34 },
+      ],
+      hurt: [
+        { torsoLean:-14, headY:-6, laY:18, raY:20, torsoY:-4 },
+        { torsoLean: -8, headY:-3, laY:24, raY:26, torsoY:-2 },
+        { torsoLean: -2, headY: 0, laY:30, raY:30, torsoY: 0 },
+      ],
+      die: [
+        { torsoLean:18, torsoY:10, laY:46, raY:46, llH:16, rlH:16 },
+        { torsoLean:28, torsoY:20, laY:56, raY:56, llH: 7, rlH: 7 },
+        { torsoLean:34, torsoY:28, laY:60, raY:60, llH: 2, rlH: 2 },
+      ],
+      special: [
+        { torsoLean:10, raEnd:{x:66,y:24}, laY:24, headY:-2 },
+        { torsoLean:20, raEnd:{x:78,y:28}, laY:18, headY:-5 },
+        { torsoLean:30, raEnd:{x:88,y:31}, laY:14, headY:-6 },
+        { torsoLean:8,  raEnd:{x:66,y:42}, laY:30, headY: 0 },
+      ],
+    }
+
+    Object.entries(POSES).forEach(([state, frames]) => {
+      const gr = this.g(80, 104, frames.length)
+      frames.forEach((pose, i) => {
+        const ox = i * 80, oy = 4
+        const cx = ox + 40
+        const power = state === 'attack' || state === 'special' ? i / Math.max(1, frames.length - 1) : 0
+
+        if (power > 0) {
+          gr.fillStyle(0xf97316, 0.08 + power * 0.18)
+          gr.fillEllipse(cx, oy + 54, 66 + power * 28, 48 + power * 18)
+        }
+
+        const p = this.drawBody(gr, ox, oy, pose, C)
+
+        gr.fillStyle(0x111111, 1)
+        gr.fillRoundedRect(p.hCx - 17, p.hCy - 15, 34, 30, 3)
+        gr.fillStyle(0x27272a, 1)
+        gr.fillRoundedRect(p.hCx - 14, p.hCy - 12, 28, 24, 3)
+        gr.fillStyle(0xf97316, 1)
+        gr.fillRect(p.hCx - 10, p.hCy - 4, 20, 7)
+        gr.fillStyle(0xffedd5, 0.75)
+        gr.fillRect(p.hCx - 10, p.hCy - 4, 20, 2)
+
+        gr.fillStyle(0x111111, 1)
+        gr.fillRoundedRect(p.tX + 6, p.tY + 8, p.tW - 12, p.tH - 14, 4)
+        gr.fillStyle(0xf97316, 1)
+        gr.fillCircle(p.hCx, p.tY + 24, 7)
+        gr.fillStyle(0xffedd5, 0.8)
+        gr.fillCircle(p.hCx, p.tY + 24, 3)
+
+        gr.lineStyle(1, 0xfb923c, 0.8)
+        gr.lineBetween(p.tX + 8, p.tY + 8, p.tX + p.tW - 8, p.tY + p.tH - 8)
+        gr.lineBetween(p.tX + p.tW - 8, p.tY + 8, p.tX + 8, p.tY + p.tH - 8)
+
+        this.dot(gr, 0x3f3f46, p.raEndX, p.raEndY, state === 'attack' || state === 'special' ? 8 : 6)
+        this.dot(gr, 0x3f3f46, p.laEndX, p.laEndY, 6)
+
+        if ((state === 'attack' && i === 3) || (state === 'special' && i > 0 && i < 3)) {
+          gr.lineStyle(3, 0xfb923c, 0.95)
+          gr.lineBetween(p.raEndX + 8, p.raEndY, p.raEndX + 30, p.raEndY - 12)
+          gr.lineBetween(p.raEndX + 8, p.raEndY + 4, p.raEndX + 36, p.raEndY + 4)
+          gr.fillStyle(0xffedd5, 0.9)
+          gr.fillCircle(p.raEndX + 6, p.raEndY + 3, 5)
+        }
+      })
+      gr.done(`overclock_${state}`)
+    })
+  }
+
+  makeTrackstar() {
+    const C = {
+      body: 0xfacc15,
+      pants: 0x111111,
+      skin: 0xf2c28f,
+      shoe: 0xffffff,
+      glow: 0xfef08a,
+      lSleeve: 0xfacc15,
+      rSleeve: 0xfacc15,
+      tW: 30,
+      tH: 34,
+      lW: 10,
+      aW: 10,
+      hR: 12,
+    }
+
+    const POSES = {
+      idle: [
+        { torsoLean: 5, torsoY: 0, laY:30, raY:24, llH:28, rlH:28 },
+        { torsoLean: 5, torsoY:-2, laY:28, raY:22, llH:29, rlH:27 },
+        { torsoLean: 5, torsoY:-4, laY:26, raY:20, llH:30, rlH:26 },
+        { torsoLean: 5, torsoY:-2, laY:28, raY:22, llH:29, rlH:27 },
+      ],
+      walk: [
+        { torsoLean: 9, laY:16, raY:42, llY:50, rlY:70, llH:38, rlH:18 },
+        { torsoLean:13, laY:10, raY:48, llY:44, rlY:77, llH:44, rlH:10 },
+        { torsoLean: 7, laY:22, raY:36, llY:55, rlY:65, llH:32, rlH:22 },
+        { torsoLean:-5, laY:38, raY:20, llY:66, rlY:54, llH:22, rlH:32 },
+        { torsoLean:-10, laY:48, raY:10, llY:77, rlY:44, llH:10, rlH:44 },
+        { torsoLean:-6, laY:42, raY:16, llY:70, rlY:50, llH:18, rlH:38 },
+      ],
+      jump: [
+        { torsoY: 4, torsoLean: 2, laY:32, raY:28, llY:74, rlY:74, llH:10, rlH:10 },
+        { torsoY:-12, torsoLean: 7, headY:-4, laY: 8, raY: 8, llY:80, rlY:80, llH: 6, rlH: 6 },
+        { torsoY:-3, torsoLean: 3, headY:-1, laY:18, raY:18, llY:70, rlY:70, llH:20, rlH:20 },
+      ],
+      attack: [
+        { torsoLean:-9,  raX:10, raY:12, laY:34, headY:-2 },
+        { torsoLean:-12, raEnd:{x:42,y:18}, laY:32, headY:-4 },
+        { torsoLean: 8,  raEnd:{x:64,y:24}, laY:28, headY:-1 },
+        { torsoLean: 22, raEnd:{x:82,y:31}, laY:23, headY: 3 },
+        { torsoLean: 12, raEnd:{x:70,y:48}, laY:29, headY: 1 },
+      ],
+      block: [
+        { torsoLean:-4, laX:-34, laY:19, laH:19, raY:34 },
+        { torsoLean:-6, laX:-36, laY:17, laH:17, raY:34 },
+        { torsoLean:-6, laX:-36, laY:17, laH:17, raY:34 },
+      ],
+      hurt: [
+        { torsoLean:-16, headY:-6, laY:18, raY:20, torsoY:-4 },
+        { torsoLean: -8, headY:-3, laY:24, raY:26, torsoY:-2 },
+        { torsoLean: -2, headY: 0, laY:30, raY:30, torsoY: 0 },
+      ],
+      die: [
+        { torsoLean:18, torsoY:10, laY:46, raY:46, llH:16, rlH:16 },
+        { torsoLean:28, torsoY:20, laY:56, raY:56, llH: 7, rlH: 7 },
+        { torsoLean:34, torsoY:28, laY:60, raY:60, llH: 2, rlH: 2 },
+      ],
+      special: [
+        { torsoLean: 18, raEnd:{x:70,y:24}, laY:18, headY:-4, llY:57, rlY:66 },
+        { torsoLean: 28, raEnd:{x:82,y:27}, laY:14, headY:-7, llY:55, rlY:70 },
+        { torsoLean: 34, raEnd:{x:86,y:30}, laY:16, headY:-6, llY:56, rlY:72 },
+        { torsoLean: 12, raEnd:{x:66,y:36}, laY:28, headY: 0, llY:62, rlY:62 },
+      ],
+    }
+
+    Object.entries(POSES).forEach(([state, frames]) => {
+      const gr = this.g(80, 104, frames.length)
+      frames.forEach((pose, i) => {
+        const ox = i * 80, oy = 4
+        const cx = ox + 40
+        const speedT = (state === 'attack' || state === 'special') ? i / Math.max(1, frames.length - 1) : 0
+
+        if (state === 'walk' || state === 'attack' || state === 'special') {
+          const alpha = state === 'special' ? 0.45 : 0.22
+          gr.lineStyle(2, 0xfef08a, alpha)
+          gr.lineBetween(cx - 34, oy + 35, cx - 7, oy + 35)
+          gr.lineBetween(cx - 38, oy + 50, cx - 5, oy + 50)
+          gr.lineBetween(cx - 30, oy + 67, cx - 10, oy + 67)
+        }
+
+        if (speedT > 0) {
+          gr.fillStyle(C.glow, 0.08 + speedT * 0.18)
+          gr.fillEllipse(cx, oy + 52, 58 + speedT * 28, 38 + speedT * 14)
+        }
+
+        const p = this.drawBody(gr, ox, oy, pose, C)
+
+        gr.lineStyle(1.5, 0x111111, 0.65)
+        gr.lineBetween(p.hCx, p.tY + 2, p.hCx, p.tY + p.tH - 2)
+        gr.fillStyle(0xeab308, 1)
+        gr.fillRoundedRect(p.tX + 5, p.tY + p.tH - 12, 9, 7, 2)
+        gr.fillRoundedRect(p.tX + p.tW - 14, p.tY + p.tH - 12, 9, 7, 2)
+
+        gr.lineStyle(5, 0xeab308, 1)
+        gr.strokeCircle(p.hCx, p.hCy, p.hR + 3)
+        gr.lineStyle(2, 0xfef08a, 0.8)
+        gr.strokeCircle(p.hCx, p.hCy, p.hR + 1)
+
+        this.face(gr, state, p.hCx, p.hCy, C.skin, 0x111111)
+        gr.fillStyle(0x111111, 1)
+        gr.fillRect(p.hCx - 8, p.hCy - 8, 16, 2)
+
+        const fistSize = state === 'attack' || state === 'special' ? 7 : 5
+        this.dot(gr, C.skin, p.raEndX, p.raEndY, fistSize)
+        this.dot(gr, C.skin, p.laEndX, p.laEndY, 5)
+
+        if ((state === 'attack' && i === 3) || (state === 'special' && i > 0 && i < 3)) {
+          gr.lineStyle(3, 0xfef08a, 0.9)
+          gr.lineBetween(p.raEndX + 7, p.raEndY, p.raEndX + 30, p.raEndY - 8)
+          gr.lineBetween(p.raEndX + 7, p.raEndY + 4, p.raEndX + 34, p.raEndY + 4)
+          gr.lineBetween(p.raEndX + 7, p.raEndY + 8, p.raEndX + 26, p.raEndY + 14)
+          gr.fillStyle(0xffffff, 0.85)
+          gr.fillCircle(p.raEndX + 6, p.raEndY + 3, 4)
+        }
+      })
+      gr.done(`trackstar_${state}`)
+    })
+  }
+
+  makeKendi() {
+    const C = {
+      body: 0x2563eb,
+      pants: 0xf8fafc,
+      skin: 0xf2c28f,
+      shoe: 0x1e3a8a,
+      glow: 0x38bdf8,
+      lSleeve: 0x1d4ed8,
+      rSleeve: 0x2563eb,
+      tW: 31,
+      tH: 36,
+      lW: 11,
+      aW: 11,
+      hR: 12,
+    }
+
+    const POSES = {
+      idle: [
+        { torsoLean: 2, torsoY: 0, laY:30, raY:24 },
+        { torsoLean: 2, torsoY:-2, laY:28, raY:22 },
+        { torsoLean: 2, torsoY:-3, laY:27, raY:21 },
+        { torsoLean: 2, torsoY:-2, laY:28, raY:22 },
+      ],
+      walk: [
+        { torsoLean: 5, laY:18, raY:42, llY:52, rlY:68, llH:36, rlH:18 },
+        { torsoLean: 8, laY:12, raY:48, llY:46, rlY:76, llH:42, rlH:10 },
+        { torsoLean: 4, laY:22, raY:36, llY:56, rlY:64, llH:30, rlH:24 },
+        { torsoLean:-4, laY:36, raY:22, llY:64, rlY:56, llH:24, rlH:30 },
+        { torsoLean:-8, laY:48, raY:12, llY:76, rlY:46, llH:10, rlH:42 },
+        { torsoLean:-5, laY:42, raY:18, llY:68, rlY:52, llH:18, rlH:36 },
+      ],
+      jump: [
+        { torsoY: 2, torsoLean: 0, laY:30, raY:30, llY:72, rlY:72, llH:12, rlH:12 },
+        { torsoY:-12, torsoLean: 4, headY:-4, laY: 7, raY: 7, llY:80, rlY:80, llH: 6, rlH: 6 },
+        { torsoY:-5, torsoLean: 1, headY:-1, laY:18, raY:18, llY:70, rlY:70, llH:20, rlH:20 },
+      ],
+      attack: [
+        { torsoLean:-8, raX:8, raY:12, laY:36 },
+        { torsoLean:-12, raEnd:{x:42,y:18}, laY:32, headY:-3 },
+        { torsoLean: 6, raEnd:{x:62,y:24}, laY:28 },
+        { torsoLean:18, raEnd:{x:78,y:32}, laY:24, headY: 3 },
+        { torsoLean:10, raEnd:{x:70,y:48}, laY:30 },
+      ],
+      block: [
+        { torsoLean:-5, laX:-34, laY:20, laH:20, raY:36 },
+        { torsoLean:-7, laX:-36, laY:18, laH:18, raY:36 },
+        { torsoLean:-7, laX:-36, laY:18, laH:18, raY:36 },
+      ],
+      hurt: [
+        { torsoLean:-15, headY:-6, laY:18, raY:20, torsoY:-4 },
+        { torsoLean: -8, headY:-3, laY:24, raY:26, torsoY:-2 },
+        { torsoLean: -2, headY: 0, laY:30, raY:30, torsoY: 0 },
+      ],
+      die: [
+        { torsoLean:18, torsoY:10, laY:46, raY:46, llH:16, rlH:16 },
+        { torsoLean:28, torsoY:20, laY:56, raY:56, llH: 7, rlH: 7 },
+        { torsoLean:34, torsoY:28, laY:60, raY:60, llH: 2, rlH: 2 },
+      ],
+      special: [
+        { torsoLean:-2, laY:16, raY:14, headY:-2 },
+        { torsoLean: 4, laY:10, raEnd:{x:62,y:18}, headY:-5 },
+        { torsoLean: 8, laY:12, raEnd:{x:72,y:24}, headY:-4 },
+        { torsoLean: 1, laY:28, raY:28, headY: 0 },
+      ],
+    }
+
+    Object.entries(POSES).forEach(([state, frames]) => {
+      const gr = this.g(80, 104, frames.length)
+      frames.forEach((pose, i) => {
+        const ox = i * 80, oy = 4
+        const cx = ox + 40
+        const flameT = (state === 'jump' || state === 'special') ? 0.35 + i / Math.max(1, frames.length - 1) * 0.55 : 0
+
+        if (flameT > 0) {
+          gr.fillStyle(0x1d4ed8, 0.08 + flameT * 0.12)
+          gr.fillEllipse(cx, oy + 58, 48 + flameT * 28, 48 + flameT * 18)
+          gr.fillStyle(0x38bdf8, 0.18)
+          gr.fillTriangle(cx - 16, oy + 88, cx - 6, oy + 60, cx + 2, oy + 88)
+          gr.fillTriangle(cx + 4, oy + 88, cx + 14, oy + 58, cx + 22, oy + 88)
+          gr.fillStyle(0x93c5fd, 0.22)
+          gr.fillTriangle(cx - 6, oy + 88, cx + 2, oy + 66, cx + 9, oy + 88)
+        }
+
+        const p = this.drawBody(gr, ox, oy, pose, C)
+
+        gr.fillStyle(0x1d4ed8, 1)
+        gr.fillRoundedRect(p.tX + 3, p.tY + 4, p.tW - 6, 7, 3)
+        gr.lineStyle(1.2, 0x93c5fd, 0.7)
+        gr.lineBetween(p.tX + 8, p.tY + 14, p.tX + p.tW - 8, p.tY + 30)
+
+        // Short blonde hair.
+        gr.fillStyle(0xfacc15, 1)
+        gr.fillEllipse(p.hCx, p.hCy - p.hR + 5, 29, 12)
+        gr.fillTriangle(p.hCx - 12, p.hCy - p.hR + 8, p.hCx - 6, p.hCy - p.hR - 4, p.hCx, p.hCy - p.hR + 8)
+        gr.fillTriangle(p.hCx - 2, p.hCy - p.hR + 8, p.hCx + 5, p.hCy - p.hR - 6, p.hCx + 12, p.hCy - p.hR + 8)
+
+        // Eye-covering bandana.
+        gr.fillStyle(0x0f172a, 1)
+        gr.fillRoundedRect(p.hCx - 15, p.hCy - 7, 30, 9, 3)
+        gr.fillStyle(0x38bdf8, 0.85)
+        gr.fillRect(p.hCx - 10, p.hCy - 4, 20, 3)
+        gr.fillStyle(0x0f172a, 1)
+        gr.fillTriangle(p.hCx + 13, p.hCy - 4, p.hCx + 24, p.hCy - 9, p.hCx + 18, p.hCy + 2)
+
+        this.face(gr, state, p.hCx, p.hCy, C.skin, 0x111111)
+        gr.fillStyle(0x0f172a, 1)
+        gr.fillRoundedRect(p.hCx - 15, p.hCy - 7, 30, 9, 3)
+        gr.fillStyle(0x38bdf8, 0.85)
+        gr.fillRect(p.hCx - 10, p.hCy - 4, 20, 3)
+
+        const handGlow = state === 'attack' || state === 'special' ? 0.7 : 0.25
+        gr.fillStyle(0x38bdf8, handGlow)
+        gr.fillCircle(p.raEndX, p.raEndY, state === 'special' ? 10 : 7)
+        gr.fillCircle(p.laEndX, p.laEndY, 6)
+
+        if (state === 'special' && i > 0 && i < 3) {
+          gr.lineStyle(3, 0x38bdf8, 0.95)
+          gr.lineBetween(p.raEndX + 6, p.raEndY, p.raEndX + 30, p.raEndY - 10)
+          gr.lineBetween(p.raEndX + 6, p.raEndY + 4, p.raEndX + 34, p.raEndY + 3)
+          gr.fillStyle(0x93c5fd, 0.9)
+          gr.fillTriangle(p.raEndX + 20, p.raEndY - 8, p.raEndX + 42, p.raEndY, p.raEndX + 20, p.raEndY + 8)
+        }
+      })
+      gr.done(`kendi_${state}`)
+    })
+  }
+
   makeShield() {
     if (this.textures.exists('shield')) return
     const gr = this.make.graphics({ x: 0, y: 0, add: false })

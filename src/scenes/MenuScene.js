@@ -256,6 +256,7 @@ export default class MenuScene extends Phaser.Scene {
 
     // ── Mode buttons ─────────────────────────────────────────────
     const modes = [
+      { label: 'BOSS  OVERCLOCK',      mode: 'boss',   icon: '!' },
       { label: '🌐  ONLINE RANKED',    mode: 'online', icon: '◈' },
       { label: 'VS  PLAYER VS PLAYER', mode: 'pvp',    icon: '⚔' },
       { label: 'AI  PLAYER VS AI',     mode: 'pve',    icon: '◉' },
@@ -263,10 +264,11 @@ export default class MenuScene extends Phaser.Scene {
     ]
 
     modes.forEach(({ label, mode }, i) => {
-      const by       = 397 + i * 62
+      const by       = 397 + i * 50
       const isOnline = mode === 'online'
-      const accentC  = isOnline ? 0x22d3ee : 0x9b59b6
-      const accentH  = isOnline ? '#22d3ee' : '#cc88ff'
+      const isBoss   = mode === 'boss'
+      const accentC  = isOnline ? 0x22d3ee : isBoss ? 0xfacc15 : 0x9b59b6
+      const accentH  = isOnline ? '#22d3ee' : isBoss ? '#facc15' : '#cc88ff'
 
       const btnBg    = this.add.graphics()
       const outerGlow = this.add.graphics()
@@ -278,7 +280,7 @@ export default class MenuScene extends Phaser.Scene {
           outerGlow.strokeRoundedRect(W / 2 - 232, by - 22, 464, 46, 8)
           outerGlow.lineStyle(4, accentC, 0.28)
           outerGlow.strokeRoundedRect(W / 2 - 230, by - 20, 460, 42, 7)
-          btnBg.fillStyle(isOnline ? 0x001a2e : 0x140038, 1)
+          btnBg.fillStyle(isOnline ? 0x001a2e : isBoss ? 0x241600 : 0x140038, 1)
           btnBg.fillRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
           btnBg.lineStyle(1.5, accentC, 0.95)
           btnBg.strokeRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
@@ -288,10 +290,10 @@ export default class MenuScene extends Phaser.Scene {
         } else {
           btnBg.fillStyle(0x07001a, 1)
           btnBg.fillRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
-          btnBg.lineStyle(1, isOnline ? 0x0e4f5f : 0x3a0070, 0.50)
+          btnBg.lineStyle(1, isOnline ? 0x0e4f5f : isBoss ? 0x854d0e : 0x3a0070, 0.50)
           btnBg.strokeRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
           // Subtle left accent bar
-          btnBg.fillStyle(isOnline ? 0x0e7490 : 0x4a1080, 0.55)
+          btnBg.fillStyle(isOnline ? 0x0e7490 : isBoss ? 0xca8a04 : 0x4a1080, 0.55)
           btnBg.fillRect(W / 2 - 228, by - 18, 3, 38)
         }
       }
@@ -321,6 +323,8 @@ export default class MenuScene extends Phaser.Scene {
             return
           }
           this.scene.start('OnlineLobbyScene')
+        } else if (mode === 'boss') {
+          this.scene.start('CharSelectScene', { mode: 'boss' })
         } else {
           this.scene.start('CharSelectScene', { mode })
         }

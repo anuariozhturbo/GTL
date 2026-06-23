@@ -287,6 +287,9 @@ export default class SmartAIController extends AIController {
     if (n === 'Merrs'  && dist < 600) return true
     if (n === 'Dice'   && f.activeTNT) return true
     if (n === 'Thragg' && dist < 450) return true
+    if (n === 'Trackstar' && dist < 560) return true
+    if (n === 'Kendi' && dist < 760) return true
+    if (n === 'Overclock' && dist < 460) return true
     return false
   }
 }

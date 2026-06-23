@@ -40,6 +40,26 @@ const CHARACTERS = [
     stats: { hp: 210, spd: 4, pwr: 8 },
     registeredOnly: true,
   },
+  {
+    key: 'trackstar', name: 'TRACKSTAR', color: 0xfacc15, hex: '#facc15',
+    desc: 'Max-speed fist fighter. Every clean hit makes his attacks faster.',
+    weapons: 'Fists - Yellow Zip Hoodie',
+    special: 'Full-Speed Dash - 10% max HP, resets on hit',
+    unique: 'Each landed hit: attack speed +2 - Miss resets the boost',
+    stats: { hp: 190, spd: 5, pwr: 5 },
+    unlockChar: 'trackstar',
+    unlockText: 'MYSTERY OVERCLOCK DROP',
+  },
+  {
+    key: 'kendi', name: 'KENDI', color: 0x38bdf8, hex: '#38bdf8',
+    desc: 'Blue-flame fighter. Double-tap jump to fly upward with flame lift.',
+    weapons: 'Blue Flame - Fire Arrow',
+    special: 'Homing Fire Arrow - 19% max HP',
+    unique: 'Double-tap W/Up to fly with blue flames',
+    stats: { hp: 195, spd: 4, pwr: 7 },
+    unlockChar: 'kendi',
+    unlockText: 'MYSTERY OVERCLOCK DROP',
+  },
 ]
 
 const STAT_MAX = { hp: 200, spd: 5, pwr: 9 }
@@ -230,7 +250,7 @@ export default class CharSelectScene extends Phaser.Scene {
 
     // ── Player side labels ───────────────────────────────────────────
     const p1Label = this.mode === 'ava' ? 'AI FIGHTER 1' : 'PLAYER 1'
-    const p2Label = this.mode === 'pvp' ? 'PLAYER 2' : this.mode === 'pve' ? 'AI FIGHTER' : 'AI FIGHTER 2'
+    const p2Label = this.mode === 'boss' ? 'BOSS' : this.mode === 'pvp' ? 'PLAYER 2' : this.mode === 'pve' ? 'AI FIGHTER' : 'AI FIGHTER 2'
     this.add.text(W * 0.25, 76, p1Label, {
       fontSize: '15px', color: '#a78bfa', fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0.5)
@@ -241,6 +261,11 @@ export default class CharSelectScene extends Phaser.Scene {
     this.add.text(W * 0.25, 92, 'Left click to pick', {
       fontSize: '10px', color: '#5a3090', fontFamily: 'monospace',
     }).setOrigin(0.5)
+    if (this.mode === 'boss') {
+      this.add.text(W * 0.75, 92, 'OVERCLOCK awaits', {
+        fontSize: '10px', color: '#facc15', fontFamily: 'monospace',
+      }).setOrigin(0.5)
+    }
     if (this.mode === 'pvp') {
       this.add.text(W * 0.75, 92, 'Right click to pick', {
         fontSize: '10px', color: '#7a2020', fontFamily: 'monospace',
@@ -321,6 +346,16 @@ export default class CharSelectScene extends Phaser.Scene {
       this.tweens.add({ targets: this.startBtn, scaleX: 1, scaleY: 1, duration: 100, ease: 'Quad.Out' })
     })
     this.startBtn.on('pointerdown', () => {
+      if (this.mode === 'boss') {
+        this.scene.start('FightScene', {
+          mode: 'boss',
+          p1: this.p1Choice,
+          p2: 'overclock',
+          stage: 'cybercity',
+          difficulty: 'hard',
+        })
+        return
+      }
       this.scene.start('StageSelectScene', { mode: this.mode, p1: this.p1Choice, p2: this.p2Choice, difficulty: this.difficulty })
     })
 
@@ -398,6 +433,10 @@ export default class CharSelectScene extends Phaser.Scene {
       this.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 100, ease: 'Quad.Out' })
     })
     container.on('pointerdown', (ptr) => {
+      if (this._isLocked(char)) {
+        this._showCharacterLockMsg(cx, cy, char)
+        return
+      }
       if (char.registeredOnly && this._user?.isGuest) {
         this._showLockMsg(cx, cy)
         return
@@ -410,7 +449,22 @@ export default class CharSelectScene extends Phaser.Scene {
     })
 
     // Lock overlay for registered-only characters when user is a guest
-    if (char.registeredOnly && this._user?.isGuest) {
+    if (this._isLocked(char)) {
+      const lockBg = this.add.graphics()
+      lockBg.fillStyle(0x000000, 0.68)
+      lockBg.fillRoundedRect(cx - W / 2, cy - H / 2, W, H, 10)
+      lockBg.setDepth(3)
+
+      this.add.text(cx, cy - 22, 'LOCKED', {
+        fontSize: '22px', color: '#facc15', fontFamily: 'monospace',
+        fontStyle: 'bold', stroke: '#000000', strokeThickness: 4,
+      }).setOrigin(0.5).setDepth(3)
+
+      this.add.text(cx, cy + 20, char.unlockText || 'BEAT BOSS', {
+        fontSize: '12px', color: '#ffffff', fontFamily: 'monospace',
+        fontStyle: 'bold', align: 'center',
+      }).setOrigin(0.5).setDepth(3)
+    } else if (char.registeredOnly && this._user?.isGuest) {
       const lockBg = this.add.graphics()
       lockBg.fillStyle(0x000000, 0.62)
       lockBg.fillRoundedRect(cx - W / 2, cy - H / 2, W, H, 10)
@@ -475,6 +529,7 @@ export default class CharSelectScene extends Phaser.Scene {
 
   selectChar(index, player) {
     const char = CHARACTERS[index]
+    if (this._isLocked(char)) return
     const CARD_W = 180, CARD_H = 300, GAP = 26
     const totalW = CHARACTERS.length * CARD_W + (CHARACTERS.length - 1) * GAP
     const startX = (this.scale.width - totalW) / 2 + CARD_W / 2
@@ -487,6 +542,7 @@ export default class CharSelectScene extends Phaser.Scene {
       if (prev >= 0) { this.p1Badges[prev].setVisible(false); this.refreshCardGlow(prev, startX + prev * (CARD_W + GAP), 390, CARD_W, CARD_H, CHARACTERS[prev]) }
       this.p1Badges[index].setVisible(true)
     } else {
+      if (this.mode === 'boss') return
       const prev = this.p2Index
       this.p2Index  = index
       this.p2Choice = char.key
@@ -498,7 +554,28 @@ export default class CharSelectScene extends Phaser.Scene {
     const cx = startX + index * (CARD_W + GAP)
     this.refreshCardGlow(index, cx, 390, CARD_W, CARD_H, char)
 
-    if (this.p1Choice && this.p2Choice) this.startBtn.setVisible(true)
+    if (this.mode === 'boss') {
+      this.p2Choice = 'overclock'
+      this.startBtn.setVisible(!!this.p1Choice)
+    } else if (this.p1Choice && this.p2Choice) this.startBtn.setVisible(true)
+  }
+
+  _isLocked(char) {
+    if (!char.unlockChar) return false
+    return !(this._user?.unlockedChars || []).includes(char.unlockChar)
+  }
+
+  _showCharacterLockMsg(cx, cy, char) {
+    if (this._lockMsgActive) return
+    this._lockMsgActive = true
+    const txt = this.add.text(cx, cy - 160, `${char.name} LOCKED\n${char.unlockText || 'BEAT THE BOSS'}`, {
+      fontSize: '15px', color: '#facc15', fontFamily: 'monospace',
+      fontStyle: 'bold', align: 'center', stroke: '#000000', strokeThickness: 3,
+    }).setOrigin(0.5).setDepth(10)
+    this.time.delayedCall(1800, () => {
+      txt.destroy()
+      this._lockMsgActive = false
+    })
   }
 
   _createDifficultySelector(W) {

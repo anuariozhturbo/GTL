@@ -1,4 +1,7 @@
+import { unlockCharacter } from '../lib/supabase.js'
 import { reportMatchResult, getDailyChallenge, levelFromXp, xpForLevel, xpForNextLevel, getRank, RANK_TIERS } from '../lib/playerStats.js'
+
+const BOSS_UNLOCK_CHARS = ['trackstar', 'kendi']
 
 export default class ResultScene extends Phaser.Scene {
   constructor() { super('ResultScene') }
@@ -53,6 +56,10 @@ export default class ResultScene extends Phaser.Scene {
     }).setOrigin(0.5)
 
     // ── Stats panel (loaded async) ────────────────────────────────
+    if (this.mode === 'boss' && this.localWon) {
+      this._unlockBossReward(W, H, user)
+    }
+
     if (this.userId) {
       this._statusTxt = this.add.text(W / 2, 360, 'CALCULATING...', {
         fontSize: '14px', color: '#5a1090', fontFamily: 'monospace', letterSpacing: 3,
@@ -61,6 +68,31 @@ export default class ResultScene extends Phaser.Scene {
     } else {
       this._addButtons(W, H, 420)
     }
+  }
+
+  async _unlockBossReward(W, H, user) {
+    const currentUnlocks = user?.unlockedChars || []
+    const missingUnlocks = BOSS_UNLOCK_CHARS.filter(char => !currentUnlocks.includes(char))
+    const alreadyUnlocked = missingUnlocks.length === 0
+    const randomUnlock = alreadyUnlocked
+      ? null
+      : Phaser.Utils.Array.GetRandom(missingUnlocks)
+    const label = !user || user.isGuest
+      ? 'SIGN IN TO CLAIM MYSTERY DROP'
+      : alreadyUnlocked
+        ? 'BOSS CHARACTERS ALREADY UNLOCKED'
+        : `MYSTERY DROP: ${randomUnlock.toUpperCase()}`
+    const message = this.add.text(W / 2, H - 130, label, {
+      fontSize: '24px', color: '#facc15', fontFamily: 'monospace', fontStyle: 'bold',
+      stroke: '#000000', strokeThickness: 5,
+    }).setOrigin(0.5).setDepth(20)
+    this.tweens.add({ targets: message, alpha: 0.45, duration: 650, yoyo: true, repeat: -1, ease: 'Sine.InOut' })
+
+    if (!user || user.isGuest || !user.id || alreadyUnlocked) return
+
+    await unlockCharacter(user.id, randomUnlock).catch(() => null)
+    const unlockedChars = [...new Set([...currentUnlocks, randomUnlock])]
+    this.registry.set('user', { ...user, unlockedChars })
   }
 
   async _loadStats(W, H, user) {
@@ -79,8 +111,9 @@ export default class ResultScene extends Phaser.Scene {
 
     // Update registry so MenuScene shows fresh numbers
     if (user) {
+      const currentUser = this.registry.get('user') || user
       this.registry.set('user', {
-        ...user,
+        ...currentUser,
         wins:          stats.totalWins,
         losses:        stats.totalLosses,
         xp:            stats.newXp,
@@ -89,6 +122,7 @@ export default class ResultScene extends Phaser.Scene {
         bestStreak:    stats.bestStreak,
         equippedTitle: stats.equippedTitle,
         unlockedTitles: stats.unlockedTitles,
+        unlockedChars: currentUser.unlockedChars || [],
       })
     }
 

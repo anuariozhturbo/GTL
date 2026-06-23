@@ -169,6 +169,9 @@ export default class AIController {
     if (n === 'Merrs'  && dist < 550) return true
     if (n === 'Dice'   && f.activeTNT) return true
     if (n === 'Thragg' && dist < 400) return true
+    if (n === 'Trackstar' && dist < 520) return true
+    if (n === 'Kendi' && dist < 700) return true
+    if (n === 'Overclock' && dist < 420) return true
     return false
   }
 
