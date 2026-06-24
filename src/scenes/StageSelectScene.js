@@ -197,12 +197,14 @@ export default class StageSelectScene extends Phaser.Scene {
   }
 
   _createBackButton(W, H) {
+    const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0;
     const btnText = this.add.text(24, H - 36, '< BACK', {
       fontFamily: 'Arial Black, Arial',
-      fontSize: '14px',
+      fontSize: isTouch ? '22px' : '14px',
       color: '#aaaaaa',
       stroke: '#000000',
       strokeThickness: 3,
+      padding: isTouch ? { x: 16, y: 12 } : undefined,
     }).setOrigin(0, 0.5).setInteractive({ useHandCursor: true });
 
     btnText.on('pointerover', () => btnText.setColor('#cc88ff'));

@@ -9,6 +9,7 @@ export default class ProfileScene extends Phaser.Scene {
   create() {
     const W = this.scale.width, H = this.scale.height
     const user = this.registry.get('user')
+    const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
 
     // ── Animated background (same palette as menu) ────────────────
     const bg = this.add.graphics()
@@ -68,6 +69,7 @@ export default class ProfileScene extends Phaser.Scene {
     const backBtn = this.add.text(36, 24, '← BACK', {
       fontSize: '14px', fontFamily: 'monospace', color: '#9b59b6',
     }).setInteractive({ useHandCursor: true })
+    if (isTouch) backBtn.setFontSize(22).setBackgroundColor('#050015').setPadding(16, 12, 16, 12)
     backBtn.on('pointerover',  () => backBtn.setColor('#cc88ff'))
     backBtn.on('pointerout',   () => backBtn.setColor('#9b59b6'))
     backBtn.on('pointerdown',  () => this.scene.start('MenuScene'))

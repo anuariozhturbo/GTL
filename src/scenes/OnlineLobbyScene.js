@@ -22,11 +22,14 @@ export default class OnlineLobbyScene extends Phaser.Scene {
     const W = this.scale.width
     const H = this.scale.height
     const user = this.registry.get('user')
+    const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
 
     this._drawBackground(W, H)
 
     const backBtn = this.add.text(36, 24, '< BACK', {
-      fontSize: '14px', fontFamily: 'monospace', color: '#3a0070',
+      fontSize: isTouch ? '22px' : '14px', fontFamily: 'monospace', color: '#3a0070',
+      backgroundColor: isTouch ? '#050015' : undefined,
+      padding: isTouch ? { x: 16, y: 12 } : undefined,
     }).setInteractive({ useHandCursor: true })
     backBtn.on('pointerover', () => backBtn.setColor('#cc88ff'))
     backBtn.on('pointerout', () => backBtn.setColor('#3a0070'))

@@ -209,8 +209,11 @@ export default class FightScene extends Phaser.Scene {
     this.projectiles = this.add.group()
 
     // Leave button
+    const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
     const leaveBtn = this.add.text(W / 2, H - 14, '[ LEAVE MATCH ]', {
-      fontSize: '12px', fontFamily: 'monospace', color: '#3d1060',
+      fontSize: isTouch ? '20px' : '12px', fontFamily: 'monospace', color: '#3d1060',
+      backgroundColor: isTouch ? '#050015' : undefined,
+      padding: isTouch ? { x: 24, y: 12 } : undefined,
     }).setOrigin(0.5).setDepth(20).setScrollFactor(0).setInteractive({ useHandCursor: true })
     leaveBtn.on('pointerover', () => leaveBtn.setColor('#9b59b6'))
     leaveBtn.on('pointerout',  () => leaveBtn.setColor('#3d1060'))
@@ -450,18 +453,18 @@ export default class FightScene extends Phaser.Scene {
     const W = this.W
     const H = this.H
     const key = (name) => this.keys1[name]
-    const makeBtn = (x, y, label, keyName, w = 84, h = 70) => {
+    const makeBtn = (x, y, label, keyName, w = 108, h = 88) => {
       const bg = this.add.graphics().setDepth(30).setScrollFactor(0)
       const draw = (down) => {
         bg.clear()
         bg.fillStyle(down ? 0x2a0060 : 0x050015, down ? 0.82 : 0.62)
-        bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 8)
+        bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 10)
         bg.lineStyle(1.5, down ? 0xc084fc : 0x5a1090, down ? 1 : 0.65)
-        bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 8)
+        bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 10)
       }
       draw(false)
       const txt = this.add.text(x, y, label, {
-        fontSize: '19px', color: '#e9d5ff', fontFamily: 'monospace', fontStyle: 'bold',
+        fontSize: '24px', color: '#e9d5ff', fontFamily: 'monospace', fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(31).setScrollFactor(0)
       const zone = this.add.zone(x, y, w, h).setDepth(32).setScrollFactor(0).setInteractive()
       const press = () => {
@@ -479,15 +482,15 @@ export default class FightScene extends Phaser.Scene {
       zone.on('pointerupoutside', release)
     }
 
-    makeBtn(92, H - 96, '<', 'left')
-    makeBtn(260, H - 96, '>', 'right')
-    makeBtn(176, H - 172, 'UP', 'up')
-    makeBtn(176, H - 30, 'DN', 'down', 84, 58)
+    makeBtn(116, H - 112, '<', 'left')
+    makeBtn(330, H - 112, '>', 'right')
+    makeBtn(222, H - 212, 'UP', 'up')
+    makeBtn(222, H - 34, 'DN', 'down', 108, 64)
 
-    makeBtn(W - 300, H - 88, 'ATK', 'attack', 94, 74)
-    makeBtn(W - 194, H - 154, 'BLK', 'block', 94, 74)
-    makeBtn(W - 88, H - 88, 'SPC', 'special', 94, 74)
-    makeBtn(W - 194, H - 24, 'ACT', 'action', 94, 52)
+    makeBtn(W - 372, H - 104, 'ATK', 'attack', 118, 92)
+    makeBtn(W - 236, H - 190, 'BLK', 'block', 118, 92)
+    makeBtn(W - 100, H - 104, 'SPC', 'special', 118, 92)
+    makeBtn(W - 236, H - 28, 'ACT', 'action', 118, 58)
   }
 
   onHpChanged(fighter) {
