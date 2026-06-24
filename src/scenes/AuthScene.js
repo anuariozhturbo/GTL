@@ -163,11 +163,11 @@ export default class AuthScene extends Phaser.Scene {
   }
 
   _isMobileLayout() {
-    return window.innerWidth <= 700 || window.innerHeight <= 520
+    return window.innerWidth <= 700 || window.innerHeight <= 700
   }
 
   _isPhoneLandscape() {
-    return window.innerWidth > window.innerHeight && window.innerHeight <= 520
+    return window.innerWidth > window.innerHeight && window.innerHeight <= 700
   }
 
   _showForm(W, H, isMobile) {

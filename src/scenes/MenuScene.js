@@ -7,11 +7,13 @@ export default class MenuScene extends Phaser.Scene {
 
   create() {
     const W = this.scale.width, H = this.scale.height
+    const scrollableMenu = this._isPhoneLandscape()
+    if (scrollableMenu) this._enableMenuScroll(W, H)
 
     // ── LAYER 1 – Deep space base ─────────────────────────────────
     const bg = this.add.graphics()
     bg.fillGradientStyle(0x000008, 0x000008, 0x05000e, 0x08001a, 1)
-    bg.fillRect(0, 0, W, H)
+    bg.fillRect(0, 0, W, scrollableMenu ? 760 : H)
 
     // Large deep nebula masses (barely visible, give spatial depth)
     bg.fillStyle(0x200040, 0.20); bg.fillCircle(W * 0.28, H * 0.22, 400)
@@ -501,6 +503,138 @@ export default class MenuScene extends Phaser.Scene {
     if (wins >= 30) return 'GOLD'
     if (wins >= 10) return 'SILVER'
     return 'BRONZE'
+  }
+
+  _enableMenuScroll(W, H) {
+    const maxScroll = Math.max(260, 760 - H)
+    const cam = this.cameras.main
+    cam.setBounds(0, 0, W, H + maxScroll)
+    cam.scrollY = 0
+
+    let dragging = false
+    let dragStartY = 0
+    let scrollStartY = 0
+    const clampScroll = (value) => {
+      cam.scrollY = Phaser.Math.Clamp(value, 0, maxScroll)
+    }
+
+    this.input.on('pointerdown', pointer => {
+      dragging = true
+      dragStartY = pointer.y
+      scrollStartY = cam.scrollY
+    })
+    this.input.on('pointermove', pointer => {
+      if (!dragging || !pointer.isDown) return
+      clampScroll(scrollStartY - (pointer.y - dragStartY))
+    })
+    this.input.on('pointerup', () => { dragging = false })
+    this.input.on('pointerupoutside', () => { dragging = false })
+    this.input.on('wheel', (_pointer, _objects, _dx, dy) => {
+      clampScroll(cam.scrollY + dy * 0.55)
+    })
+
+    this.add.text(W - 28, H - 34, 'SWIPE FOR MODES', {
+      fontSize: '12px', color: '#7c3aed', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(1, 0.5).setDepth(80).setScrollFactor(0)
+  }
+
+  _isPhoneLandscape() {
+    const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
+    return isTouch && window.innerWidth > window.innerHeight && window.innerHeight <= 700
+  }
+
+  _createLandscapeMenu(W, H) {
+    const bg = this.add.graphics()
+    bg.fillGradientStyle(0x000008, 0x000008, 0x08001a, 0x03000d, 1)
+    bg.fillRect(0, 0, W, H)
+    bg.fillStyle(0x4a1080, 0.16); bg.fillCircle(W * 0.25, H * 0.45, 260)
+    bg.fillStyle(0x22d3ee, 0.05); bg.fillCircle(W * 0.82, H * 0.46, 240)
+    bg.lineStyle(1.5, 0x3d0080, 0.72)
+    bg.strokeRect(10, 10, W - 20, H - 20)
+
+    this.scale.once('resize', () => {
+      if (this.scene.isActive('MenuScene')) this.scene.restart()
+    })
+
+    this.add.text(30, 26, 'CHAOS', {
+      fontSize: '42px', color: '#b080ff', fontFamily: 'monospace', fontStyle: 'bold',
+      stroke: '#2d0060', strokeThickness: 3,
+    }).setOrigin(0, 0)
+    this.add.text(34, 74, 'CONSTRUCT', {
+      fontSize: '18px', color: '#e2d9f3', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0, 0)
+
+    const user = this.registry.get('user')
+    const badge = user && !user.isGuest ? `${user.displayName || 'PLAYER'}  LVL ${user.level || 1}` : 'GUEST'
+    this.add.text(W - 24, 28, badge, {
+      fontSize: '13px', color: user && !user.isGuest ? '#9b59b6' : '#555', fontFamily: 'monospace',
+    }).setOrigin(1, 0)
+
+    const modes = [
+      { label: 'BOSS', mode: 'boss', accent: 0xfacc15 },
+      { label: 'ONLINE', mode: 'online', accent: 0x22d3ee },
+      { label: 'PVP', mode: 'pvp', accent: 0x9b59b6 },
+      { label: 'PLAYER VS AI', mode: 'pve', accent: 0x9b59b6 },
+      { label: 'AI VS AI', mode: 'ava', accent: 0x9b59b6 },
+    ]
+
+    const startX = Math.max(220, W * 0.36)
+    const colGap = Math.min(238, W * 0.23)
+    const rowGap = 54
+    const topY = Math.max(86, H * 0.28)
+    modes.forEach((item, i) => {
+      const col = i % 2
+      const row = Math.floor(i / 2)
+      const x = startX + col * colGap
+      const y = topY + row * rowGap
+      this._createLandscapeButton(x, y, item.label, item.accent, () => {
+        if (item.mode === 'online') {
+          const currentUser = this.registry.get('user')
+          if (!currentUser || currentUser.isGuest) {
+            this._showLandscapeToast(W, H, 'SIGN IN TO PLAY ONLINE')
+            return
+          }
+          this.scene.start('OnlineLobbyScene')
+        } else if (item.mode === 'boss') {
+          this.scene.start('CharSelectScene', { mode: 'boss' })
+        } else {
+          this.scene.start('CharSelectScene', { mode: item.mode })
+        }
+      })
+    })
+
+    this._createLandscapeButton(W - 98, H - 40, 'QR SHARE', 0x22d3ee, () => this._openQrCode(W, H), 142, 36)
+    this.add.text(W / 2, H - 17, 'Turn sideways to play with PC-style view', {
+      fontSize: '10px', color: '#4a1080', fontFamily: 'monospace',
+    }).setOrigin(0.5)
+  }
+
+  _createLandscapeButton(x, y, label, accent, onClick, w = 198, h = 38) {
+    const g = this.add.graphics()
+    const draw = (hover) => {
+      g.clear()
+      g.fillStyle(hover ? 0x12002f : 0x050014, 0.92)
+      g.fillRoundedRect(x - w / 2, y - h / 2, w, h, 6)
+      g.lineStyle(1.5, accent, hover ? 0.95 : 0.55)
+      g.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 6)
+      g.fillStyle(accent, hover ? 0.9 : 0.5)
+      g.fillRect(x - w / 2, y - h / 2, 4, h)
+    }
+    draw(false)
+    const txt = this.add.text(x, y, label, {
+      fontSize: '16px', color: '#aaa', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+    txt.on('pointerover', () => { draw(true); txt.setColor('#ffffff') })
+    txt.on('pointerout', () => { draw(false); txt.setColor('#aaa') })
+    txt.on('pointerdown', onClick)
+  }
+
+  _showLandscapeToast(W, H, text) {
+    this._landscapeToast?.destroy()
+    this._landscapeToast = this.add.text(W / 2, H - 52, text, {
+      fontSize: '12px', color: '#ef4444', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5)
+    this.time.delayedCall(2000, () => { this._landscapeToast?.destroy(); this._landscapeToast = null })
   }
 
   _createQrButton(W, H) {

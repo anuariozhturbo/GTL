@@ -7,9 +7,10 @@
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
-      width: 100vw; height: 100vh;
-      width: 100vw; height: -webkit-fill-available;
-      width: 100vw; height: 100dvh;
+      width: var(--app-width, 100vw);
+      height: var(--app-height, 100vh);
+      height: var(--app-height, -webkit-fill-available);
+      height: var(--app-height, 100dvh);
       background: #000;
       overflow: hidden;
       position: fixed;
@@ -20,12 +21,18 @@
       -webkit-touch-callout: none;
     }
     #game {
-      width: 100vw; height: 100vh;
-      height: -webkit-fill-available;
-      height: 100dvh;
+      width: var(--app-width, 100vw);
+      height: var(--app-height, 100vh);
+      height: var(--app-height, -webkit-fill-available);
+      height: var(--app-height, 100dvh);
       touch-action: none;
     }
-    canvas { display: block; touch-action: none; }
+    canvas {
+      display: block;
+      width: var(--app-width, 100vw) !important;
+      height: var(--app-height, 100vh) !important;
+      touch-action: none;
+    }
   </style>
 </head>
 <body>
