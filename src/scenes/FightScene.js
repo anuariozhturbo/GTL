@@ -68,13 +68,28 @@ export default class FightScene extends Phaser.Scene {
   }
 
   create() {
-    const W = this.scale.width, H = this.scale.height
+    const screenW = this.scale.width, screenH = this.scale.height
+    const usePcView = this._usePcLandscapeView()
+    const W = usePcView ? 1280 : screenW
+    const H = usePcView ? 720 : screenH
     this.W = W; this.H = H
     const WW = WORLD_W
+    this.scale.once('resize', () => {
+      const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
+      if (!isTouch || !this.scene.isActive('FightScene')) return
+      this.scene.restart({
+        mode: this.mode,
+        p1: this.p1Key,
+        p2: this.p2Key,
+        stage: this.stageKey,
+        difficulty: this.difficulty,
+      })
+    })
 
     // Physics + camera
     this.physics.world.setBounds(0, 0, WW, H)
     this.cameras.main.setBounds(0, 0, WW, H)
+    if (usePcView) this._applyPcLandscapeCamera(screenW, screenH)
     this.stageBounds = { left: 80, right: WW - 80 }
 
     // Platform + hazard containers (populated by stage)
@@ -239,6 +254,25 @@ export default class FightScene extends Phaser.Scene {
     // Start round
     this.roundActive = false
     this.startRound()
+  }
+
+  _usePcLandscapeView() {
+    const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
+    return isTouch && window.innerWidth > window.innerHeight
+  }
+
+  _applyPcLandscapeCamera(screenW, screenH) {
+    const targetAspect = 16 / 9
+    let viewW = screenW
+    let viewH = screenH
+    if (viewW / viewH > targetAspect) viewW = viewH * targetAspect
+    else viewH = viewW / targetAspect
+
+    const viewX = (screenW - viewW) / 2
+    const viewY = (screenH - viewH) / 2
+    this.cameras.main.setViewport(viewX, viewY, viewW, viewH)
+    this.cameras.main.setZoom(viewH / 720)
+    this.cameras.main.setBackgroundColor('#000000')
   }
 
   createAnims() {
@@ -413,8 +447,8 @@ export default class FightScene extends Phaser.Scene {
     const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
     if (!isTouch) return
 
-    const W = this.scale.width
-    const H = this.scale.height
+    const W = this.W
+    const H = this.H
     const key = (name) => this.keys1[name]
     const makeBtn = (x, y, label, keyName, w = 64, h = 54) => {
       const bg = this.add.graphics().setDepth(30).setScrollFactor(0)
@@ -516,7 +550,7 @@ export default class FightScene extends Phaser.Scene {
     if (this._disconnected) return
     this._disconnected  = true
     this.roundActive    = false
-    const W = this.scale.width, H = this.scale.height
+    const W = this.W, H = this.H
     this.add.rectangle(W / 2, H / 2, 520, 110, 0x000000, 0.88).setDepth(50).setScrollFactor(0)
     this.add.text(W / 2, H / 2 - 14, 'OPPONENT DISCONNECTED', {
       fontSize: '26px', color: '#ef4444', fontFamily: 'monospace',
@@ -731,7 +765,7 @@ export default class FightScene extends Phaser.Scene {
         arrow.destroy()
         check.remove()
       }
-      if (arrow.x < 0 || arrow.x > this.scale.width) { arrow.destroy(); check.remove() }
+      if (arrow.x < 0 || arrow.x > WORLD_W) { arrow.destroy(); check.remove() }
     }})
   }
 
@@ -755,7 +789,7 @@ export default class FightScene extends Phaser.Scene {
         check.remove()
         owner.onHookLanded?.(opp)
       }
-      if (hook.x < 0 || hook.x > this.scale.width) { hook.destroy(); check.remove() }
+      if (hook.x < 0 || hook.x > WORLD_W) { hook.destroy(); check.remove() }
     }})
   }
 
@@ -781,7 +815,7 @@ export default class FightScene extends Phaser.Scene {
         this.spawnBurnEffect(opp.x, opp.y - 30)
         bolt.destroy(); check.remove()
       }
-      if (bolt.x < 0 || bolt.x > this.scale.width) { bolt.destroy(); check.remove() }
+      if (bolt.x < 0 || bolt.x > WORLD_W) { bolt.destroy(); check.remove() }
     }})
   }
 
@@ -846,7 +880,7 @@ export default class FightScene extends Phaser.Scene {
         if (!opp.isBlocking) opp.applyStun(owner.cfg.netStunDuration)
         net.destroy(); check.remove()
       }
-      if (net.x < 0 || net.x > this.scale.width) { net.destroy(); check.remove() }
+      if (net.x < 0 || net.x > WORLD_W) { net.destroy(); check.remove() }
     }})
   }
 

@@ -2,18 +2,30 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no" />
   <title>Chaos Construct</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body {
       width: 100vw; height: 100vh;
+      width: 100vw; height: -webkit-fill-available;
       width: 100vw; height: 100dvh;
       background: #000;
       overflow: hidden;
+      position: fixed;
+      inset: 0;
+      overscroll-behavior: none;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
     }
-    #game { width: 100vw; height: 100vh; height: 100dvh; }
-    canvas { display: block; }
+    #game {
+      width: 100vw; height: 100vh;
+      height: -webkit-fill-available;
+      height: 100dvh;
+      touch-action: none;
+    }
+    canvas { display: block; touch-action: none; }
   </style>
 </head>
 <body>

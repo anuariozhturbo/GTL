@@ -116,6 +116,9 @@ export default class AuthScene extends Phaser.Scene {
     const subtitleSize = isMobile ? '30px' : '52px'
     this._mode = 'login'
     this._handled = false
+    this.scale.once('resize', () => {
+      if (!this._handled && this.scene.isActive('AuthScene')) this.scene.restart()
+    })
 
     this._drawBg(W, H)
 

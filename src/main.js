@@ -30,4 +30,13 @@ const config = {
   scene: [BootScene, AuthScene, MenuScene, CharSelect, StageSelectScene, OnlineLobbyScene, FightScene, ResultScene, ProfileScene]
 }
 
-export default new Phaser.Game(config)
+const game = new Phaser.Game(config)
+
+const refreshScale = () => {
+  window.setTimeout(() => game.scale.refresh(), 120)
+}
+
+window.addEventListener('orientationchange', refreshScale)
+window.visualViewport?.addEventListener('resize', refreshScale)
+
+export default game
