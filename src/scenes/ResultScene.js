@@ -1,7 +1,7 @@
 import { unlockCharacter } from '../lib/supabase.js'
 import { reportMatchResult, getDailyChallenge, levelFromXp, xpForLevel, xpForNextLevel, getRank, RANK_TIERS } from '../lib/playerStats.js'
 
-const BOSS_UNLOCK_CHARS = ['trackstar', 'kendi']
+const BOSS_UNLOCK_CHARS = ['trackstar', 'kendi', 'ryu']
 
 export default class ResultScene extends Phaser.Scene {
   constructor() { super('ResultScene') }

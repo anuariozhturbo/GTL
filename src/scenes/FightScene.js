@@ -5,6 +5,7 @@ import Thragg from '../fighters/Thragg.js'
 import Lohe   from '../fighters/Lohe.js'
 import Trackstar from '../fighters/Trackstar.js'
 import Kendi from '../fighters/Kendi.js'
+import Ryu from '../fighters/Ryu.js'
 import Overclock from '../fighters/Overclock.js'
 import { FIGHTER_CONFIGS } from '../fighters/configs.js'
 import AIController      from '../ai/AIController.js'
@@ -19,7 +20,7 @@ import VolcanoTempleStage from '../stages/VolcanoTemple.js'
 import CyberCityStage    from '../stages/CyberCity.js'
 import SpaceStationStage from '../stages/SpaceStation.js'
 
-const FIGHTER_CLASSES = { ash: Ash, merrs: Merrs, dice: Dice, thragg: Thragg, lohe: Lohe, trackstar: Trackstar, kendi: Kendi, overclock: Overclock }
+const FIGHTER_CLASSES = { ash: Ash, merrs: Merrs, dice: Dice, thragg: Thragg, lohe: Lohe, trackstar: Trackstar, kendi: Kendi, ryu: Ryu, overclock: Overclock }
 const AI_PROFILES = {
   ash:    { aggression: 0.55, reactionMs: 220, attackRange: 130, preferredRange: 260 },
   merrs:  { aggression: 0.65, reactionMs: 180, attackRange: 140, preferredRange: 320 },
@@ -28,6 +29,7 @@ const AI_PROFILES = {
   lohe:   { aggression: 0.70, reactionMs: 210, attackRange: 145, preferredRange: 270 },
   trackstar: { aggression: 0.85, reactionMs: 150, attackRange: 118, preferredRange: 180 },
   kendi: { aggression: 0.72, reactionMs: 170, attackRange: 128, preferredRange: 360 },
+  ryu: { aggression: 0.78, reactionMs: 180, attackRange: 138, preferredRange: 260 },
   overclock: { aggression: 0.88, reactionMs: 120, attackRange: 165, preferredRange: 210 },
 }
 
@@ -147,6 +149,7 @@ export default class FightScene extends Phaser.Scene {
       left:    this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.A),
       right:   this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.D),
       up:      this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.W),
+      down:    this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.S),
       attack:  this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.Z),
       block:   this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.X),
       special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.C),
@@ -156,6 +159,7 @@ export default class FightScene extends Phaser.Scene {
       left:    this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.LEFT),
       right:   this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.RIGHT),
       up:      this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.UP),
+      down:    this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.DOWN),
       attack:  this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.K),
       block:   this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.L),
       special: this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.I),
@@ -171,6 +175,7 @@ export default class FightScene extends Phaser.Scene {
       lohe:   { name: 'LOHE',   color: 0xfde047 },
       trackstar: { name: 'TRACKSTAR', color: 0xfacc15 },
       kendi: { name: 'KENDI', color: 0x38bdf8 },
+      ryu: { name: 'RYU', color: 0x22c55e },
       overclock: { name: 'OVERCLOCK', color: 0xf97316 },
     }
     const user = this.registry.get('user')
@@ -179,6 +184,7 @@ export default class FightScene extends Phaser.Scene {
     this.hb2 = new HealthBar(this, W - 30, 20, true,  CHAR_META[this.p2Key].name, CHAR_META[this.p2Key].color)
     this.roundUI = new RoundUI(this, W, this.p1Wins, this.p2Wins, this.roundNum, this.p1Key, this.p2Key)
     this.controlsHUD = new ControlsHUD(this)
+    this._createTouchControls()
 
     // Events
     this.events.on('hpChanged',    f => this.onHpChanged(f))
@@ -202,6 +208,7 @@ export default class FightScene extends Phaser.Scene {
         left:    { isDown: false },
         right:   { isDown: false },
         up:      { isDown: false, _justDown: false },
+        down:    { isDown: false, _justDown: false },
         attack:  { isDown: false, _justDown: false },
         block:   { isDown: false },
         special: { isDown: false, _justDown: false },
@@ -218,6 +225,8 @@ export default class FightScene extends Phaser.Scene {
         rk.right.isDown      = !!payload.right
         rk.up.isDown         = !!payload.up
         rk.up._justDown      = !!payload.up_j
+        rk.down.isDown       = !!payload.down
+        rk.down._justDown    = !!payload.down_j
         rk.attack._justDown  = !!payload.attack_j
         rk.block.isDown      = !!payload.block
         rk.special._justDown = !!payload.special_j
@@ -241,6 +250,7 @@ export default class FightScene extends Phaser.Scene {
       { key: 'lohe',   states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'trackstar', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'kendi', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
+      { key: 'ryu', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
       { key: 'overclock', states: { idle:4, walk:6, jump:3, attack:5, block:3, hurt:3, die:3, special:4 } },
     ]
     const rates = { idle:8, walk:12, jump:10, attack:18, block:10, hurt:14, die:8, special:14, glide:10 }
@@ -327,6 +337,8 @@ export default class FightScene extends Phaser.Scene {
         right:     localKeys.right.isDown,
         up:        localKeys.up.isDown,
         up_j:      localKeys.up._justDown      || false,
+        down:      localKeys.down.isDown,
+        down_j:    localKeys.down._justDown    || false,
         attack_j:  localKeys.attack._justDown  || false,
         block:     localKeys.block.isDown,
         special_j: localKeys.special._justDown || false,
@@ -341,6 +353,7 @@ export default class FightScene extends Phaser.Scene {
         this.handleActionKey(remoteF, this._remoteKeys)
         // Clear one-shot flags — isDown state persists for smooth held movement
         this._remoteKeys.up._justDown      = false
+        this._remoteKeys.down._justDown    = false
         this._remoteKeys.attack._justDown  = false
         this._remoteKeys.special._justDown = false
         this._remoteKeys.action._justDown  = false
@@ -394,6 +407,53 @@ export default class FightScene extends Phaser.Scene {
       if (keys.block.isDown) fighter.fireCrossbow()
       else fighter.dropTNT()
     }
+  }
+
+  _createTouchControls() {
+    const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
+    if (!isTouch) return
+
+    const W = this.scale.width
+    const H = this.scale.height
+    const key = (name) => this.keys1[name]
+    const makeBtn = (x, y, label, keyName, w = 64, h = 54) => {
+      const bg = this.add.graphics().setDepth(30).setScrollFactor(0)
+      const draw = (down) => {
+        bg.clear()
+        bg.fillStyle(down ? 0x2a0060 : 0x050015, down ? 0.82 : 0.62)
+        bg.fillRoundedRect(x - w / 2, y - h / 2, w, h, 8)
+        bg.lineStyle(1.5, down ? 0xc084fc : 0x5a1090, down ? 1 : 0.65)
+        bg.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 8)
+      }
+      draw(false)
+      const txt = this.add.text(x, y, label, {
+        fontSize: '15px', color: '#e9d5ff', fontFamily: 'monospace', fontStyle: 'bold',
+      }).setOrigin(0.5).setDepth(31).setScrollFactor(0)
+      const zone = this.add.zone(x, y, w, h).setDepth(32).setScrollFactor(0).setInteractive()
+      const press = () => {
+        key(keyName).isDown = true
+        key(keyName)._justDown = true
+        draw(true)
+      }
+      const release = () => {
+        key(keyName).isDown = false
+        draw(false)
+      }
+      zone.on('pointerdown', press)
+      zone.on('pointerup', release)
+      zone.on('pointerout', release)
+      zone.on('pointerupoutside', release)
+    }
+
+    makeBtn(82, H - 88, '<', 'left')
+    makeBtn(222, H - 88, '>', 'right')
+    makeBtn(152, H - 148, 'UP', 'up')
+    makeBtn(152, H - 34, 'DN', 'down')
+
+    makeBtn(W - 250, H - 78, 'ATK', 'attack', 74, 58)
+    makeBtn(W - 164, H - 136, 'BLK', 'block', 74, 58)
+    makeBtn(W - 80, H - 78, 'SPC', 'special', 74, 58)
+    makeBtn(W - 164, H - 28, 'ACT', 'action', 74, 46)
   }
 
   onHpChanged(fighter) {

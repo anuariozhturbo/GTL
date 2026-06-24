@@ -1,7 +1,7 @@
 export default class RoundUI {
   constructor(scene, W, p1Wins, p2Wins, roundNum, p1Key, p2Key) {
     this.scene = scene
-    const CHAR_COLORS = { ash: 0x7c3aed, merrs: 0x60a5fa, dice: 0xf59e0b, thragg: 0xef4444, trackstar: 0xfacc15, kendi: 0x38bdf8, overclock: 0xf97316 }
+    const CHAR_COLORS = { ash: 0x7c3aed, merrs: 0x60a5fa, dice: 0xf59e0b, thragg: 0xef4444, trackstar: 0xfacc15, kendi: 0x38bdf8, ryu: 0x22c55e, overclock: 0xf97316 }
     const c1 = CHAR_COLORS[p1Key] || 0x9b59b6
     const c2 = CHAR_COLORS[p2Key] || 0x9b59b6
 

@@ -60,6 +60,16 @@ const CHARACTERS = [
     unlockChar: 'kendi',
     unlockText: 'MYSTERY OVERCLOCK DROP',
   },
+  {
+    key: 'ryu', name: 'RYU', color: 0x22c55e, hex: '#22c55e',
+    desc: 'Destruction fighter. Double-tap down to spike the enemy from below.',
+    weapons: 'Green Destruction - Chaos Energy',
+    special: 'Chaos Energy - 17% max HP, new shape every throw',
+    unique: 'Double-tap S/Down: green spikes under opponent',
+    stats: { hp: 210, spd: 4, pwr: 7 },
+    unlockChar: 'ryu',
+    unlockText: 'MYSTERY OVERCLOCK DROP',
+  },
 ]
 
 const STAT_MAX = { hp: 200, spd: 5, pwr: 9 }
@@ -283,32 +293,29 @@ export default class CharSelectScene extends Phaser.Scene {
     }
 
     // ── Cards ────────────────────────────────────────────────────────
-    const CARD_W = 180, CARD_H = 300, GAP = 26
-    const totalW = CHARACTERS.length * CARD_W + (CHARACTERS.length - 1) * GAP
-    const startX = (W - totalW) / 2 + CARD_W / 2
+    const layout = this._getCardLayout()
 
     this.cardContainers = []
     this.cardGlowGraphics = []
 
     CHARACTERS.forEach((char, i) => {
-      const cx = startX + i * (CARD_W + GAP)
-      const cy = 390
-      this.cardContainers.push(this.createCard(char, i, cx, cy, CARD_W, CARD_H))
+      const { x, y } = this._getCardPosition(i, layout)
+      this.cardContainers.push(this.createCard(char, i, x, y, layout.cardW, layout.cardH))
     })
 
     // ── P1 / P2 badge overlays (one per card) ───────────────────────
     // rendered after cards so they sit on top
     this.p1Badges = CHARACTERS.map((_, i) => {
-      const cx = startX + i * (CARD_W + GAP)
-      const badge = this.add.text(cx - CARD_W / 2 + 8, 390 - CARD_H / 2 + 8, 'P1', {
+      const { x, y } = this._getCardPosition(i, layout)
+      const badge = this.add.text(x - layout.cardW / 2 + 8, y - layout.cardH / 2 + 8, 'P1', {
         fontSize: '13px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
         backgroundColor: '#7c3aed', padding: { x: 6, y: 3 },
       }).setDepth(5).setVisible(false)
       return badge
     })
     this.p2Badges = CHARACTERS.map((_, i) => {
-      const cx = startX + i * (CARD_W + GAP)
-      const badge = this.add.text(cx + CARD_W / 2 - 8, 390 - CARD_H / 2 + 8, 'P2', {
+      const { x, y } = this._getCardPosition(i, layout)
+      const badge = this.add.text(x + layout.cardW / 2 - 8, y - layout.cardH / 2 + 8, 'P2', {
         fontSize: '13px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
         backgroundColor: '#dc2626', padding: { x: 6, y: 3 },
       }).setDepth(5).setVisible(false).setOrigin(1, 0)
@@ -332,10 +339,10 @@ export default class CharSelectScene extends Phaser.Scene {
     backBtn.on('pointerdown', () => this.scene.start('MenuScene'))
 
     // ── Fight button ─────────────────────────────────────────────────
-    this.startBtn = this.add.text(W / 2, H - 22, '▶  FIGHT', {
-      fontSize: '26px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
-      backgroundColor: '#5e1e9e', padding: { x: 44, y: 13 },
-    }).setOrigin(0.5, 1).setDepth(5).setInteractive({ useHandCursor: true }).setVisible(false)
+    this.startBtn = this.add.text(W - 34, 84, 'FIGHT', {
+      fontSize: '22px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
+      backgroundColor: '#5e1e9e', padding: { x: 30, y: 10 },
+    }).setOrigin(1, 0.5).setDepth(5).setInteractive({ useHandCursor: true }).setVisible(false)
 
     this.startBtn.on('pointerover', () => {
       this.startBtn.setStyle({ backgroundColor: '#9b59b6', color: '#ffffff' })
@@ -361,6 +368,31 @@ export default class CharSelectScene extends Phaser.Scene {
 
   }
 
+  _getCardLayout() {
+    return {
+      cols: 5,
+      cardW: 136,
+      cardH: 214,
+      gapX: 18,
+      gapY: 18,
+      topY: 222,
+    }
+  }
+
+  _getCardPosition(index, layout = this._getCardLayout()) {
+    const row = Math.floor(index / layout.cols)
+    const col = index % layout.cols
+    const rowStart = row * layout.cols
+    const rowCount = Math.min(layout.cols, CHARACTERS.length - rowStart)
+    const totalW = rowCount * layout.cardW + (rowCount - 1) * layout.gapX
+    const startX = (this.scale.width - totalW) / 2 + layout.cardW / 2
+
+    return {
+      x: startX + col * (layout.cardW + layout.gapX),
+      y: layout.topY + row * (layout.cardH + layout.gapY),
+    }
+  }
+
   createCard(char, i, cx, cy, W, H) {
     const container = this.add.container(cx, cy)
 
@@ -379,41 +411,42 @@ export default class CharSelectScene extends Phaser.Scene {
     // Portrait background
     const portraitBg = this.add.graphics()
     portraitBg.fillStyle(char.color, 0.08)
-    portraitBg.fillRoundedRect(-W / 2 + 8, -H / 2 + 8, W - 16, 170, 6)
+    portraitBg.fillRoundedRect(-W / 2 + 8, -H / 2 + 8, W - 16, 108, 6)
 
     // Character sprite (idle frame 0, scaled up)
-    const sprite = this.add.image(0, -H / 2 + 8 + 85, char.key + '_idle', 0)
-    sprite.setScale(2.2).setDepth(1)
+    const sprite = this.add.image(0, -H / 2 + 62, char.key + '_idle', 0)
+    sprite.setScale(1.55).setDepth(1)
 
     // Divider
     const div = this.add.graphics()
     div.lineStyle(1, char.color, 0.3)
-    div.lineBetween(-W / 2 + 16, -H / 2 + 186, W / 2 - 16, -H / 2 + 186)
+    div.lineBetween(-W / 2 + 12, -H / 2 + 124, W / 2 - 12, -H / 2 + 124)
 
     // Name
-    const nameText = this.add.text(0, -H / 2 + 198, char.name, {
-      fontSize: '22px', color: char.hex, fontFamily: 'monospace', fontStyle: 'bold',
+    const nameText = this.add.text(0, -H / 2 + 132, char.name, {
+      fontSize: char.name.length > 7 ? '15px' : '17px',
+      color: char.hex, fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0.5, 0)
 
     // Stat bars
     const statGraphics = this.add.graphics()
     const statLabels = []
     const statKeys = [['HP', 'hp', 0x22cc44], ['SPD', 'spd', 0x38bdf8], ['PWR', 'pwr', 0xf97316]]
-    const barW = W - 32, barH = 7
+    const barW = W - 24, barH = 6
     statKeys.forEach(([label, key, barColor], si) => {
-      const sy = -H / 2 + 230 + si * 20
+      const sy = -H / 2 + 162 + si * 16
       const ratio = char.stats[key] / STAT_MAX[key]
       // Track bg
       statGraphics.fillStyle(0x1a1a2e, 1)
-      statGraphics.fillRoundedRect(-W / 2 + 16, sy, barW, barH, 3)
+      statGraphics.fillRoundedRect(-W / 2 + 12, sy, barW, barH, 3)
       // Fill
       statGraphics.fillStyle(barColor, 0.85)
-      statGraphics.fillRoundedRect(-W / 2 + 16, sy, barW * ratio, barH, 3)
+      statGraphics.fillRoundedRect(-W / 2 + 12, sy, barW * ratio, barH, 3)
       // Label
-      statLabels.push(this.add.text(-W / 2 + 16, sy - 12, label, {
+      statLabels.push(this.add.text(-W / 2 + 12, sy - 10, label, {
         fontSize: '9px', color: '#888888', fontFamily: 'monospace',
       }))
-      statLabels.push(this.add.text(W / 2 - 16, sy - 12, String(char.stats[key]), {
+      statLabels.push(this.add.text(W / 2 - 12, sy - 10, String(char.stats[key]), {
         fontSize: '9px', color: '#aaaaaa', fontFamily: 'monospace',
       }).setOrigin(1, 0))
     })
@@ -530,29 +563,35 @@ export default class CharSelectScene extends Phaser.Scene {
   selectChar(index, player) {
     const char = CHARACTERS[index]
     if (this._isLocked(char)) return
-    const CARD_W = 180, CARD_H = 300, GAP = 26
-    const totalW = CHARACTERS.length * CARD_W + (CHARACTERS.length - 1) * GAP
-    const startX = (this.scale.width - totalW) / 2 + CARD_W / 2
+    const layout = this._getCardLayout()
 
     if (player === 1) {
       const prev = this.p1Index
       this.p1Index  = index
       this.p1Choice = char.key
       // Hide old P1 badge
-      if (prev >= 0) { this.p1Badges[prev].setVisible(false); this.refreshCardGlow(prev, startX + prev * (CARD_W + GAP), 390, CARD_W, CARD_H, CHARACTERS[prev]) }
+      if (prev >= 0) {
+        const prevPos = this._getCardPosition(prev, layout)
+        this.p1Badges[prev].setVisible(false)
+        this.refreshCardGlow(prev, prevPos.x, prevPos.y, layout.cardW, layout.cardH, CHARACTERS[prev])
+      }
       this.p1Badges[index].setVisible(true)
     } else {
       if (this.mode === 'boss') return
       const prev = this.p2Index
       this.p2Index  = index
       this.p2Choice = char.key
-      if (prev >= 0) { this.p2Badges[prev].setVisible(false); this.refreshCardGlow(prev, startX + prev * (CARD_W + GAP), 390, CARD_W, CARD_H, CHARACTERS[prev]) }
+      if (prev >= 0) {
+        const prevPos = this._getCardPosition(prev, layout)
+        this.p2Badges[prev].setVisible(false)
+        this.refreshCardGlow(prev, prevPos.x, prevPos.y, layout.cardW, layout.cardH, CHARACTERS[prev])
+      }
       this.p2Badges[index].setVisible(true)
     }
 
     // Update glow for this card
-    const cx = startX + index * (CARD_W + GAP)
-    this.refreshCardGlow(index, cx, 390, CARD_W, CARD_H, char)
+    const pos = this._getCardPosition(index, layout)
+    this.refreshCardGlow(index, pos.x, pos.y, layout.cardW, layout.cardH, char)
 
     if (this.mode === 'boss') {
       this.p2Choice = 'overclock'
@@ -644,8 +683,8 @@ export default class CharSelectScene extends Phaser.Scene {
   }
 
   createInfoPanel(W, H) {
-    const panel = this.add.container(W / 2, H - 74)
-    const panelW = 860, panelH = 64
+    const panel = this.add.container(W / 2, H - 92)
+    const panelW = 940, panelH = 82
 
     const panelBg = this.add.graphics()
     panelBg.fillStyle(0x05000f, 0.95)
@@ -653,25 +692,34 @@ export default class CharSelectScene extends Phaser.Scene {
     panelBg.lineStyle(1, 0x2a0060, 0.8)
     panelBg.strokeRoundedRect(-panelW / 2, -panelH / 2, panelW, panelH, 8)
 
-    const nameText = this.add.text(-panelW / 2 + 20, -10, '', {
-      fontSize: '20px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
+    const nameText = this.add.text(-panelW / 2 + 18, -22, '', {
+      fontSize: '21px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0, 0.5)
 
-    const descText = this.add.text(-panelW / 2 + 20, 12, '', {
+    const descText = this.add.text(-panelW / 2 + 18, 6, '', {
       fontSize: '12px', color: '#aaaaaa', fontFamily: 'monospace',
+      wordWrap: { width: 380 },
     }).setOrigin(0, 0.5)
 
-    const specialText = this.add.text(panelW / 2 - 20, -10, '', {
+    const weaponsText = this.add.text(-panelW / 2 + 18, 28, '', {
+      fontSize: '11px', color: '#6ee7b7', fontFamily: 'monospace',
+      wordWrap: { width: 390 },
+    }).setOrigin(0, 0.5)
+
+    const specialText = this.add.text(panelW / 2 - 22, -18, '', {
       fontSize: '11px', color: '#c084fc', fontFamily: 'monospace', align: 'right',
+      wordWrap: { width: 450 },
     }).setOrigin(1, 0.5)
 
-    const uniqueText = this.add.text(panelW / 2 - 20, 12, '', {
+    const uniqueText = this.add.text(panelW / 2 - 22, 16, '', {
       fontSize: '11px', color: '#60a5fa', fontFamily: 'monospace', align: 'right',
+      wordWrap: { width: 450 },
     }).setOrigin(1, 0.5)
 
-    panel.add([panelBg, nameText, descText, specialText, uniqueText])
+    panel.add([panelBg, nameText, descText, weaponsText, specialText, uniqueText])
     panel.nameText    = nameText
     panel.descText    = descText
+    panel.weaponsText = weaponsText
     panel.specialText = specialText
     panel.uniqueText  = uniqueText
     panel.setDepth(4).setVisible(false)
@@ -682,6 +730,7 @@ export default class CharSelectScene extends Phaser.Scene {
     const p = this.infoPanel
     p.nameText.setText(char.name).setColor(char.hex)
     p.descText.setText(char.desc)
+    p.weaponsText.setText(`Loadout: ${char.weapons}`)
     p.specialText.setText(`Special: ${char.special}`)
     p.uniqueText.setText(`Unique: ${char.unique}`)
     p.setVisible(true)
