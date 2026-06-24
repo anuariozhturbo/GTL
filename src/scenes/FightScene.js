@@ -210,7 +210,7 @@ export default class FightScene extends Phaser.Scene {
 
     // Leave button
     const isTouch = this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
-    const leaveBtn = this.add.text(W / 2, H - 14, '[ LEAVE MATCH ]', {
+    const leaveBtn = this.add.text(W / 2, isTouch ? 74 : 64, '[ LEAVE MATCH ]', {
       fontSize: isTouch ? '20px' : '12px', fontFamily: 'monospace', color: '#3d1060',
       backgroundColor: isTouch ? '#050015' : undefined,
       padding: isTouch ? { x: 24, y: 12 } : undefined,
