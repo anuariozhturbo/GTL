@@ -272,6 +272,12 @@ export default class MenuScene extends Phaser.Scene {
       const isBoss   = mode === 'boss'
       const accentC  = isOnline ? 0x22d3ee : isBoss ? 0xfacc15 : 0x9b59b6
       const accentH  = isOnline ? '#22d3ee' : isBoss ? '#facc15' : '#cc88ff'
+      const btnW     = scrollableMenu ? 530 : 456
+      const btnH     = scrollableMenu ? 50 : 38
+      const hitW     = scrollableMenu ? 542 : 464
+      const hitH     = scrollableMenu ? 58 : 46
+      const btnX     = W / 2 - btnW / 2
+      const btnY     = by - btnH / 2
 
       const btnBg    = this.add.graphics()
       const outerGlow = this.add.graphics()
@@ -280,30 +286,30 @@ export default class MenuScene extends Phaser.Scene {
         outerGlow.clear(); btnBg.clear()
         if (hovered) {
           outerGlow.lineStyle(10, accentC, 0.14)
-          outerGlow.strokeRoundedRect(W / 2 - 232, by - 22, 464, 46, 8)
+          outerGlow.strokeRoundedRect(W / 2 - hitW / 2, by - hitH / 2, hitW, hitH, 8)
           outerGlow.lineStyle(4, accentC, 0.28)
-          outerGlow.strokeRoundedRect(W / 2 - 230, by - 20, 460, 42, 7)
+          outerGlow.strokeRoundedRect(W / 2 - hitW / 2 + 2, by - hitH / 2 + 2, hitW - 4, hitH - 4, 7)
           btnBg.fillStyle(isOnline ? 0x001a2e : isBoss ? 0x241600 : 0x140038, 1)
-          btnBg.fillRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
+          btnBg.fillRoundedRect(btnX, btnY, btnW, btnH, 6)
           btnBg.lineStyle(1.5, accentC, 0.95)
-          btnBg.strokeRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
+          btnBg.strokeRoundedRect(btnX, btnY, btnW, btnH, 6)
           // Bright left accent bar
           btnBg.fillStyle(accentC, 0.90)
-          btnBg.fillRect(W / 2 - 228, by - 18, 4, 38)
+          btnBg.fillRect(btnX, btnY, 5, btnH)
         } else {
           btnBg.fillStyle(0x07001a, 1)
-          btnBg.fillRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
+          btnBg.fillRoundedRect(btnX, btnY, btnW, btnH, 6)
           btnBg.lineStyle(1, isOnline ? 0x0e4f5f : isBoss ? 0x854d0e : 0x3a0070, 0.50)
-          btnBg.strokeRoundedRect(W / 2 - 228, by - 18, 456, 38, 6)
+          btnBg.strokeRoundedRect(btnX, btnY, btnW, btnH, 6)
           // Subtle left accent bar
           btnBg.fillStyle(isOnline ? 0x0e7490 : isBoss ? 0xca8a04 : 0x4a1080, 0.55)
-          btnBg.fillRect(W / 2 - 228, by - 18, 3, 38)
+          btnBg.fillRect(btnX, btnY, 4, btnH)
         }
       }
       drawBtn(false)
 
       const btn = this.add.text(W / 2 + 4, by, label, {
-        fontSize: '22px', color: '#777', fontFamily: 'monospace',
+        fontSize: scrollableMenu ? '27px' : '22px', color: '#777', fontFamily: 'monospace',
       }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
       btn.on('pointerover', () => {
@@ -640,8 +646,9 @@ export default class MenuScene extends Phaser.Scene {
   _createQrButton(W, H) {
     const x = 92
     const y = H - 86
-    const w = 130
-    const h = 36
+    const mobile = this._isPhoneLandscape()
+    const w = mobile ? 174 : 130
+    const h = mobile ? 52 : 36
     const qrG = this.add.graphics()
 
     const draw = (hover) => {
@@ -656,7 +663,7 @@ export default class MenuScene extends Phaser.Scene {
     draw(false)
 
     const label = this.add.text(x + 2, y, 'QR  SHARE', {
-      fontSize: '14px', color: '#777', fontFamily: 'monospace', fontStyle: 'bold',
+      fontSize: mobile ? '18px' : '14px', color: '#777', fontFamily: 'monospace', fontStyle: 'bold',
     }).setOrigin(0.5).setInteractive({ useHandCursor: true })
 
     label.on('pointerover', () => {

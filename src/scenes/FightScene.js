@@ -450,7 +450,7 @@ export default class FightScene extends Phaser.Scene {
     const W = this.W
     const H = this.H
     const key = (name) => this.keys1[name]
-    const makeBtn = (x, y, label, keyName, w = 64, h = 54) => {
+    const makeBtn = (x, y, label, keyName, w = 84, h = 70) => {
       const bg = this.add.graphics().setDepth(30).setScrollFactor(0)
       const draw = (down) => {
         bg.clear()
@@ -461,7 +461,7 @@ export default class FightScene extends Phaser.Scene {
       }
       draw(false)
       const txt = this.add.text(x, y, label, {
-        fontSize: '15px', color: '#e9d5ff', fontFamily: 'monospace', fontStyle: 'bold',
+        fontSize: '19px', color: '#e9d5ff', fontFamily: 'monospace', fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(31).setScrollFactor(0)
       const zone = this.add.zone(x, y, w, h).setDepth(32).setScrollFactor(0).setInteractive()
       const press = () => {
@@ -479,15 +479,15 @@ export default class FightScene extends Phaser.Scene {
       zone.on('pointerupoutside', release)
     }
 
-    makeBtn(82, H - 88, '<', 'left')
-    makeBtn(222, H - 88, '>', 'right')
-    makeBtn(152, H - 148, 'UP', 'up')
-    makeBtn(152, H - 34, 'DN', 'down')
+    makeBtn(92, H - 96, '<', 'left')
+    makeBtn(260, H - 96, '>', 'right')
+    makeBtn(176, H - 172, 'UP', 'up')
+    makeBtn(176, H - 30, 'DN', 'down', 84, 58)
 
-    makeBtn(W - 250, H - 78, 'ATK', 'attack', 74, 58)
-    makeBtn(W - 164, H - 136, 'BLK', 'block', 74, 58)
-    makeBtn(W - 80, H - 78, 'SPC', 'special', 74, 58)
-    makeBtn(W - 164, H - 28, 'ACT', 'action', 74, 46)
+    makeBtn(W - 300, H - 88, 'ATK', 'attack', 94, 74)
+    makeBtn(W - 194, H - 154, 'BLK', 'block', 94, 74)
+    makeBtn(W - 88, H - 88, 'SPC', 'special', 94, 74)
+    makeBtn(W - 194, H - 24, 'ACT', 'action', 94, 52)
   }
 
   onHpChanged(fighter) {

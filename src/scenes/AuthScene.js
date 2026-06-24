@@ -26,6 +26,16 @@ const FORM_HTML = `
     box-shadow:0 0 12px rgba(155,89,182,0.45);
   }
   #cc-auth input::placeholder { color:#4a2070; }
+  @media (pointer: coarse) {
+    #cc-auth button {
+      min-height:48px !important;
+      font-size:15px !important;
+    }
+    #cc-auth input {
+      min-height:46px !important;
+      font-size:15px !important;
+    }
+  }
   @media (orientation: landscape) and (max-height: 520px) {
     #cc-auth {
       width:min(340px,calc(100vw - 28px)) !important;
@@ -33,12 +43,12 @@ const FORM_HTML = `
       max-height:calc(100dvh - 18px) !important;
     }
     #cc-auth .auth-tabs { margin-bottom:10px !important; }
-    #cc-auth input { padding:8px 10px !important; margin-bottom:7px !important; }
+    #cc-auth input { padding:8px 10px !important; margin-bottom:7px !important; min-height:42px !important; }
     #auth-msg { min-height:14px !important; margin-bottom:5px !important; }
-    #btn-submit { padding:9px !important; margin-bottom:8px !important; }
+    #btn-submit { padding:9px !important; margin-bottom:8px !important; min-height:44px !important; }
     #auth-or { margin-bottom:7px !important; font-size:10px !important; }
-    #btn-google { padding:8px !important; margin-bottom:7px !important; font-size:12px !important; }
-    #btn-guest { padding:8px !important; font-size:12px !important; }
+    #btn-google { padding:8px !important; margin-bottom:7px !important; font-size:13px !important; min-height:42px !important; }
+    #btn-guest { padding:8px !important; font-size:13px !important; min-height:42px !important; }
   }
 </style>
 <div id="cc-auth" style="

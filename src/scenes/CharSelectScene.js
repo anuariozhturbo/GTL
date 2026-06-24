@@ -84,6 +84,7 @@ export default class CharSelectScene extends Phaser.Scene {
     this.p1Index    = -1
     this.p2Index    = -1
     this.difficulty = 'medium'
+    this.pickTarget = 1
   }
 
   create() {
@@ -291,6 +292,7 @@ export default class CharSelectScene extends Phaser.Scene {
         fontSize: '10px', color: '#7a2020', fontFamily: 'monospace',
       }).setOrigin(0.5)
     }
+    if (this._isMobile()) this._createMobilePickTarget(W)
 
     // ── Cards ────────────────────────────────────────────────────────
     const layout = this._getCardLayout()
@@ -334,6 +336,7 @@ export default class CharSelectScene extends Phaser.Scene {
     const backBtn = this.add.text(28, H - 22, '← BACK', {
       fontSize: '13px', color: '#4a2080', fontFamily: 'monospace',
     }).setOrigin(0, 1).setDepth(5).setInteractive({ useHandCursor: true })
+    if (this._isMobile()) backBtn.setFontSize(18).setPadding(12, 10, 12, 10)
     backBtn.on('pointerover', () => backBtn.setColor('#cc88ff'))
     backBtn.on('pointerout',  () => backBtn.setColor('#4a2080'))
     backBtn.on('pointerdown', () => this.scene.start('MenuScene'))
@@ -343,6 +346,7 @@ export default class CharSelectScene extends Phaser.Scene {
       fontSize: '22px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
       backgroundColor: '#5e1e9e', padding: { x: 30, y: 10 },
     }).setOrigin(1, 0.5).setDepth(5).setInteractive({ useHandCursor: true }).setVisible(false)
+    if (this._isMobile()) this.startBtn.setFontSize(28).setPadding(38, 15, 38, 15)
 
     this.startBtn.on('pointerover', () => {
       this.startBtn.setStyle({ backgroundColor: '#9b59b6', color: '#ffffff' })
@@ -369,6 +373,16 @@ export default class CharSelectScene extends Phaser.Scene {
   }
 
   _getCardLayout() {
+    if (this._isMobile()) {
+      return {
+        cols: window.innerWidth > window.innerHeight ? 4 : 2,
+        cardW: 158,
+        cardH: 232,
+        gapX: 22,
+        gapY: 24,
+        topY: window.innerWidth > window.innerHeight ? 224 : 250,
+      }
+    }
     return {
       cols: 5,
       cardW: 136,
@@ -377,6 +391,46 @@ export default class CharSelectScene extends Phaser.Scene {
       gapY: 18,
       topY: 222,
     }
+  }
+
+  _isMobile() {
+    return this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
+  }
+
+  _createMobilePickTarget(W) {
+    if (this.mode === 'boss') return
+
+    const p2Label = this.mode === 'pve' ? 'PICK AI' : this.mode === 'ava' ? 'PICK AI 2' : 'PICK P2'
+    const buttons = [
+      { player: 1, label: this.mode === 'ava' ? 'PICK AI 1' : 'PICK P1', x: W / 2 - 118, color: 0x7c3aed },
+      { player: 2, label: p2Label, x: W / 2 + 118, color: 0xef4444 },
+    ]
+
+    this._pickTargetButtons = []
+    buttons.forEach(btn => {
+      const g = this.add.graphics().setDepth(6)
+      const draw = () => {
+        const selected = this.pickTarget === btn.player
+        g.clear()
+        g.fillStyle(selected ? btn.color : 0x080018, selected ? 0.92 : 0.88)
+        g.fillRoundedRect(btn.x - 104, 106, 208, 48, 8)
+        g.lineStyle(2, btn.color, selected ? 1 : 0.55)
+        g.strokeRoundedRect(btn.x - 104, 106, 208, 48, 8)
+      }
+      draw()
+      const txt = this.add.text(btn.x, 130, btn.label, {
+        fontSize: '18px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
+      }).setOrigin(0.5).setDepth(7).setInteractive({ useHandCursor: true })
+      txt.on('pointerdown', () => {
+        this.pickTarget = btn.player
+        this._pickTargetButtons.forEach(refresh => refresh())
+      })
+      this._pickTargetButtons.push(draw)
+    })
+
+    this.add.text(W / 2, 162, 'Tap a side, then tap a fighter', {
+      fontSize: '13px', color: '#a78bfa', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(7)
   }
 
   _getCardPosition(index, layout = this._getCardLayout()) {
@@ -474,7 +528,9 @@ export default class CharSelectScene extends Phaser.Scene {
         this._showLockMsg(cx, cy)
         return
       }
-      if (ptr.rightButtonDown()) {
+      if (this._isMobile()) {
+        this.selectChar(i, this.pickTarget)
+      } else if (ptr.rightButtonDown()) {
         this.selectChar(i, 2)
       } else {
         this.selectChar(i, 1)
@@ -623,7 +679,9 @@ export default class CharSelectScene extends Phaser.Scene {
       { key: 'medium', label: 'MEDIUM', color: '#facc15', hoverBg: '#1c1400' },
       { key: 'hard',   label: 'HARD',   color: '#ef4444', hoverBg: '#2a0000' },
     ]
-    const BTN_W = 120, BTN_H = 32, GAP = 14
+    const BTN_W = this._isMobile() ? 150 : 120
+    const BTN_H = this._isMobile() ? 46 : 32
+    const GAP = this._isMobile() ? 18 : 14
     const totalW = difficulties.length * BTN_W + (difficulties.length - 1) * GAP
     const startX = W / 2 - totalW / 2
     const ROW_Y = 570
@@ -662,7 +720,7 @@ export default class CharSelectScene extends Phaser.Scene {
       drawBg(false)
 
       const btn = this.add.text(bx + BTN_W / 2, ROW_Y, d.label, {
-        fontSize: '13px', color: isSelected() ? d.color : '#444', fontFamily: 'monospace', fontStyle: 'bold',
+        fontSize: this._isMobile() ? '17px' : '13px', color: isSelected() ? d.color : '#444', fontFamily: 'monospace', fontStyle: 'bold',
       }).setOrigin(0.5).setDepth(5).setInteractive({ useHandCursor: true })
 
       const refresh = () => {
