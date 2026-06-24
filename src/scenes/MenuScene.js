@@ -1,5 +1,6 @@
 import { signOut, updateDisplayName }       from '../lib/supabase.js'
 import { getDailyChallenge, getTodayUTC, equipTitle } from '../lib/playerStats.js'
+import QRCode from 'qrcode'
 
 export default class MenuScene extends Phaser.Scene {
   constructor() { super('MenuScene') }
@@ -331,6 +332,8 @@ export default class MenuScene extends Phaser.Scene {
       })
     })
 
+    this._createQrButton(W, H)
+
     // Panel bottom accent
     const panelBotG = this.add.graphics()
     panelBotG.lineStyle(1, 0x5a1090, 0.25)
@@ -498,6 +501,153 @@ export default class MenuScene extends Phaser.Scene {
     if (wins >= 30) return 'GOLD'
     if (wins >= 10) return 'SILVER'
     return 'BRONZE'
+  }
+
+  _createQrButton(W, H) {
+    const x = 92
+    const y = H - 86
+    const w = 130
+    const h = 36
+    const qrG = this.add.graphics()
+
+    const draw = (hover) => {
+      qrG.clear()
+      qrG.fillStyle(hover ? 0x071f2e : 0x050014, 0.92)
+      qrG.fillRoundedRect(x - w / 2, y - h / 2, w, h, 6)
+      qrG.lineStyle(1.5, hover ? 0x22d3ee : 0x3d0070, hover ? 0.95 : 0.58)
+      qrG.strokeRoundedRect(x - w / 2, y - h / 2, w, h, 6)
+      qrG.fillStyle(hover ? 0x22d3ee : 0x4a1080, hover ? 0.9 : 0.55)
+      qrG.fillRect(x - w / 2, y - h / 2, 4, h)
+    }
+    draw(false)
+
+    const label = this.add.text(x + 2, y, 'QR  SHARE', {
+      fontSize: '14px', color: '#777', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true })
+
+    label.on('pointerover', () => {
+      draw(true)
+      label.setColor('#22d3ee').setScale(1.03)
+    })
+    label.on('pointerout', () => {
+      draw(false)
+      label.setColor('#777').setScale(1)
+    })
+    label.on('pointerdown', () => this._openQrCode(W, H))
+  }
+
+  _getGameUrl() {
+    const configuredUrl = import.meta.env.VITE_GAME_URL
+    if (configuredUrl) return configuredUrl
+
+    const url = new URL(window.location.href)
+    url.search = ''
+    url.hash = ''
+    return url.toString()
+  }
+
+  _escapeHtml(value) {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;')
+  }
+
+  async _openQrCode(W, H) {
+    if (this._qrOpen) return
+    this._qrOpen = true
+
+    const gameUrl = this._getGameUrl()
+    let qrDataUrl = ''
+    try {
+      qrDataUrl = await QRCode.toDataURL(gameUrl, {
+        width: 220,
+        margin: 2,
+        color: {
+          dark: '#080020',
+          light: '#ffffff',
+        },
+      })
+    } catch {
+      this._qrOpen = false
+      return
+    }
+    const safeGameUrl = this._escapeHtml(gameUrl)
+
+    const MODAL_HTML = `
+<style>
+  #cc-qr * { box-sizing: border-box; }
+  #cc-qr button { transition: background 0.15s, box-shadow 0.15s, color 0.15s; }
+  #qr-close:hover { color:#22d3ee !important; }
+  #qr-copy:hover { background:#0e7490 !important; box-shadow:0 0 18px rgba(34,211,238,0.6); }
+</style>
+<div id="cc-qr" style="
+  font-family:'Courier New',monospace;
+  background:rgba(3,0,18,0.97);
+  border:1.5px solid #0e7490;
+  border-radius:12px;
+  padding:26px;
+  width:330px;
+  box-shadow:0 0 40px rgba(34,211,238,0.28),inset 0 0 30px rgba(20,0,50,0.5);
+  color:#e9d5ff;
+  position:relative;
+  text-align:center;
+">
+  <button id="qr-close" style="position:absolute;top:12px;right:16px;background:none;border:none;
+    color:#3a7080;font-size:18px;cursor:pointer;font-family:'Courier New',monospace;padding:0;">×</button>
+  <div style="font-size:15px;font-weight:bold;letter-spacing:4px;color:#22d3ee;margin-bottom:16px;">
+    QR SHARE
+  </div>
+  <div style="background:#fff;border-radius:8px;padding:12px;margin:0 auto 14px;width:244px;">
+    <img src="${qrDataUrl}" alt="Game QR code" width="220" height="220" style="display:block;">
+  </div>
+  <div style="font-size:11px;color:#8bd8e6;letter-spacing:2px;margin-bottom:10px;">
+    SCAN TO OPEN GAME
+  </div>
+  <div id="qr-url" style="font-size:10px;color:#6a90a0;line-height:1.4;word-break:break-all;margin-bottom:14px;">
+    ${safeGameUrl}
+  </div>
+  <button id="qr-copy" style="width:100%;background:#075064;border:1.5px solid #22d3ee;
+    color:#fff;padding:10px;cursor:pointer;font-family:'Courier New',monospace;
+    font-size:13px;font-weight:bold;border-radius:6px;letter-spacing:3px;">COPY LINK</button>
+</div>`
+
+    this._qrOverlay = this.add.rectangle(W / 2, H / 2, W, H, 0x000000, 0.58).setDepth(10)
+    this._qrOverlay.setInteractive()
+
+    this._qrDom = this.add.dom(W / 2, H / 2).createFromHTML(MODAL_HTML).setDepth(11)
+    this._qrZone = this.add.zone(W / 2, H / 2, 360, 430).setDepth(12).setInteractive()
+
+    this._qrDom.addListener('click')
+    this._qrDom.on('click', async e => {
+      const id = e.target.closest('button')?.id || e.target.id
+      if (id === 'qr-close') {
+        this._closeQrCode()
+      } else if (id === 'qr-copy') {
+        await navigator.clipboard?.writeText(gameUrl).catch(() => {})
+        const copyBtn = this._qrDom?.getChildByID('qr-copy')
+        if (copyBtn) copyBtn.textContent = 'COPIED'
+      }
+    })
+
+    this._qrDom.addListener('keydown')
+    this._qrDom.on('keydown', e => {
+      if (e.key === 'Escape') this._closeQrCode()
+    })
+
+    this._qrOverlay.on('pointerdown', () => this._closeQrCode())
+  }
+
+  _closeQrCode() {
+    this._qrDom?.destroy()
+    this._qrOverlay?.destroy()
+    this._qrZone?.destroy()
+    this._qrDom = null
+    this._qrOverlay = null
+    this._qrZone = null
+    this._qrOpen = false
   }
 
   _openSettings(W, H, user) {
