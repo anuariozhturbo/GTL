@@ -147,7 +147,7 @@ export default class AuthScene extends Phaser.Scene {
   }
 
   _showForm(W, H, isMobile) {
-    this._formEl = this.add.dom(W / 2, isMobile ? H / 2 + 108 : H / 2 + 115).createFromHTML(FORM_HTML)
+    this._formEl = this.add.dom(W / 2, isMobile ? H / 2 : H / 2 + 115).createFromHTML(FORM_HTML)
 
     // Focus-glow on inputs
     const inputs = ['field-email', 'field-pass', 'field-name']
