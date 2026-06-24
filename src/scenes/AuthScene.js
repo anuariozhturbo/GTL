@@ -26,6 +26,20 @@ const FORM_HTML = `
     box-shadow:0 0 12px rgba(155,89,182,0.45);
   }
   #cc-auth input::placeholder { color:#4a2070; }
+  @media (orientation: landscape) and (max-height: 520px) {
+    #cc-auth {
+      width:min(340px,calc(100vw - 28px)) !important;
+      padding:12px 14px !important;
+      max-height:calc(100dvh - 18px) !important;
+    }
+    #cc-auth .auth-tabs { margin-bottom:10px !important; }
+    #cc-auth input { padding:8px 10px !important; margin-bottom:7px !important; }
+    #auth-msg { min-height:14px !important; margin-bottom:5px !important; }
+    #btn-submit { padding:9px !important; margin-bottom:8px !important; }
+    #auth-or { margin-bottom:7px !important; font-size:10px !important; }
+    #btn-google { padding:8px !important; margin-bottom:7px !important; font-size:12px !important; }
+    #btn-guest { padding:8px !important; font-size:12px !important; }
+  }
 </style>
 <div id="cc-auth" style="
   font-family:'Courier New',monospace;
@@ -41,7 +55,7 @@ const FORM_HTML = `
   box-shadow:0 0 40px rgba(91,15,160,0.35),inset 0 0 30px rgba(20,0,50,0.5);
   color:#e9d5ff;
 ">
-  <div style="display:flex;gap:8px;margin-bottom:20px;">
+  <div class="auth-tabs" style="display:flex;gap:8px;margin-bottom:20px;">
     <button id="tab-login" style="flex:1;background:#3d0070;border:1px solid #7c3aed;
       color:#e9d5ff;padding:8px 4px;cursor:pointer;font-family:'Courier New',monospace;
       font-size:13px;font-weight:bold;border-radius:6px;letter-spacing:2px;">LOGIN</button>
@@ -70,7 +84,7 @@ const FORM_HTML = `
     color:#ffffff;padding:12px;cursor:pointer;font-family:'Courier New',monospace;
     font-size:16px;font-weight:bold;border-radius:6px;margin-bottom:14px;
     letter-spacing:3px;">ENTER</button>
-  <div style="text-align:center;color:#2a0050;margin-bottom:12px;font-size:11px;
+  <div id="auth-or" style="text-align:center;color:#2a0050;margin-bottom:12px;font-size:11px;
     letter-spacing:3px;">——  OR  ——</div>
   <button id="btn-google" style="width:100%;background:#ffffff;border:1.5px solid #dddddd;
     color:#333333;padding:11px;cursor:pointer;font-family:'Courier New',monospace;
@@ -95,6 +109,7 @@ export default class AuthScene extends Phaser.Scene {
   create() {
     const W = this.scale.width, H = this.scale.height
     const isMobile = this._isMobileLayout()
+    const isPhoneLandscape = this._isPhoneLandscape()
     const titleY = isMobile ? 92 : 148
     const titleSize = isMobile ? '76px' : '122px'
     const subtitleY = isMobile ? 164 : 262
@@ -104,15 +119,17 @@ export default class AuthScene extends Phaser.Scene {
 
     this._drawBg(W, H)
 
-    this.add.text(W / 2, titleY, 'CHAOS', {
-      fontSize: titleSize, color: '#9b59b6', fontFamily: 'monospace', fontStyle: 'bold',
-      stroke: '#2d0060', strokeThickness: 5,
-    }).setOrigin(0.5)
+    if (!isPhoneLandscape) {
+      this.add.text(W / 2, titleY, 'CHAOS', {
+        fontSize: titleSize, color: '#9b59b6', fontFamily: 'monospace', fontStyle: 'bold',
+        stroke: '#2d0060', strokeThickness: 5,
+      }).setOrigin(0.5)
 
-    this.add.text(W / 2, subtitleY, 'CONSTRUCT', {
-      fontSize: subtitleSize, color: '#e2d9f3', fontFamily: 'monospace', fontStyle: 'bold',
-      stroke: '#3d0070', strokeThickness: 3,
-    }).setOrigin(0.5)
+      this.add.text(W / 2, subtitleY, 'CONSTRUCT', {
+        fontSize: subtitleSize, color: '#e2d9f3', fontFamily: 'monospace', fontStyle: 'bold',
+        stroke: '#3d0070', strokeThickness: 3,
+      }).setOrigin(0.5)
+    }
 
     this._statusText = this.add.text(W / 2, isMobile ? H / 2 - 20 : H / 2 + 30, 'CHECKING SESSION…', {
       fontSize: '13px', color: '#4a1080', fontFamily: 'monospace', letterSpacing: 3,
@@ -144,6 +161,10 @@ export default class AuthScene extends Phaser.Scene {
 
   _isMobileLayout() {
     return window.innerWidth <= 700 || window.innerHeight <= 520
+  }
+
+  _isPhoneLandscape() {
+    return window.innerWidth > window.innerHeight && window.innerHeight <= 520
   }
 
   _showForm(W, H, isMobile) {
