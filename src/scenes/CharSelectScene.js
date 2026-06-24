@@ -90,6 +90,7 @@ export default class CharSelectScene extends Phaser.Scene {
   create() {
     const W = this.scale.width, H = this.scale.height
     this._user = this.registry.get('user')
+    if (this._isMobile()) this._enableMobileScroll(W, H)
 
     // Disable right-click context menu so P2 can select with right click
     this.input.mouse.disableContextMenu()
@@ -97,7 +98,7 @@ export default class CharSelectScene extends Phaser.Scene {
     // ── Background ───────────────────────────────────────────────────
     const bg = this.add.graphics()
     bg.fillGradientStyle(0x000008, 0x000008, 0x05000e, 0x08001a, 1)
-    bg.fillRect(0, 0, W, H)
+    bg.fillRect(0, 0, W, this._mobileContentHeight || H)
 
     // Deep nebula layers
     bg.fillStyle(0x200040, 0.20); bg.fillCircle(W * 0.50, H * 0.50, 520)
@@ -335,7 +336,7 @@ export default class CharSelectScene extends Phaser.Scene {
     // ── Back button ──────────────────────────────────────────────────
     const backBtn = this.add.text(28, H - 22, '← BACK', {
       fontSize: '13px', color: '#4a2080', fontFamily: 'monospace',
-    }).setOrigin(0, 1).setDepth(5).setInteractive({ useHandCursor: true })
+    }).setOrigin(0, 1).setDepth(20).setScrollFactor(0).setInteractive({ useHandCursor: true })
     if (this._isMobile()) backBtn.setFontSize(18).setPadding(12, 10, 12, 10)
     backBtn.on('pointerover', () => backBtn.setColor('#cc88ff'))
     backBtn.on('pointerout',  () => backBtn.setColor('#4a2080'))
@@ -345,7 +346,7 @@ export default class CharSelectScene extends Phaser.Scene {
     this.startBtn = this.add.text(W - 34, 84, 'FIGHT', {
       fontSize: '22px', color: '#ffffff', fontFamily: 'monospace', fontStyle: 'bold',
       backgroundColor: '#5e1e9e', padding: { x: 30, y: 10 },
-    }).setOrigin(1, 0.5).setDepth(5).setInteractive({ useHandCursor: true }).setVisible(false)
+    }).setOrigin(1, 0.5).setDepth(20).setScrollFactor(0).setInteractive({ useHandCursor: true }).setVisible(false)
     if (this._isMobile()) this.startBtn.setFontSize(28).setPadding(38, 15, 38, 15)
 
     this.startBtn.on('pointerover', () => {
@@ -395,6 +396,47 @@ export default class CharSelectScene extends Phaser.Scene {
 
   _isMobile() {
     return this.sys.game.device.input.touch || navigator.maxTouchPoints > 0
+  }
+
+  _enableMobileScroll(W, H) {
+    const layout = this._getCardLayout()
+    const rows = Math.ceil(CHARACTERS.length / layout.cols)
+    const contentBottom = layout.topY + (rows - 1) * (layout.cardH + layout.gapY) + layout.cardH / 2 + 150
+    const maxScroll = Math.max(0, contentBottom - H)
+    this._mobileContentHeight = Math.max(H, contentBottom)
+    if (maxScroll <= 0) return
+
+    const cam = this.cameras.main
+    cam.setBounds(0, 0, W, H + maxScroll)
+    cam.scrollY = 0
+
+    let dragging = false
+    let dragStartY = 0
+    let scrollStartY = 0
+    const clampScroll = (value) => {
+      cam.scrollY = Phaser.Math.Clamp(value, 0, maxScroll)
+    }
+
+    this.input.on('pointerdown', pointer => {
+      dragging = true
+      this._mobileWasDragging = false
+      dragStartY = pointer.y
+      scrollStartY = cam.scrollY
+    })
+    this.input.on('pointermove', pointer => {
+      if (!dragging || !pointer.isDown) return
+      if (Math.abs(pointer.y - dragStartY) > 10) this._mobileWasDragging = true
+      clampScroll(scrollStartY - (pointer.y - dragStartY))
+    })
+    this.input.on('pointerup', () => { dragging = false })
+    this.input.on('pointerupoutside', () => { dragging = false })
+    this.input.on('wheel', (_pointer, _objects, _dx, dy) => {
+      clampScroll(cam.scrollY + dy * 0.55)
+    })
+
+    this.add.text(W / 2, H - 22, 'SWIPE TO SEE ALL FIGHTERS', {
+      fontSize: '12px', color: '#7c3aed', fontFamily: 'monospace', fontStyle: 'bold',
+    }).setOrigin(0.5).setDepth(30).setScrollFactor(0)
   }
 
   _createMobilePickTarget(W) {
@@ -520,6 +562,7 @@ export default class CharSelectScene extends Phaser.Scene {
       this.tweens.add({ targets: container, scaleX: 1, scaleY: 1, duration: 100, ease: 'Quad.Out' })
     })
     container.on('pointerdown', (ptr) => {
+      if (this._isMobile()) return
       if (this._isLocked(char)) {
         this._showCharacterLockMsg(cx, cy, char)
         return
@@ -535,6 +578,18 @@ export default class CharSelectScene extends Phaser.Scene {
       } else {
         this.selectChar(i, 1)
       }
+    })
+    container.on('pointerup', () => {
+      if (!this._isMobile() || this._mobileWasDragging) return
+      if (this._isLocked(char)) {
+        this._showCharacterLockMsg(cx, cy, char)
+        return
+      }
+      if (char.registeredOnly && this._user?.isGuest) {
+        this._showLockMsg(cx, cy)
+        return
+      }
+      this.selectChar(i, this.pickTarget)
     })
 
     // Lock overlay for registered-only characters when user is a guest
@@ -632,6 +687,10 @@ export default class CharSelectScene extends Phaser.Scene {
         this.refreshCardGlow(prev, prevPos.x, prevPos.y, layout.cardW, layout.cardH, CHARACTERS[prev])
       }
       this.p1Badges[index].setVisible(true)
+      if (this._isMobile() && this.mode !== 'boss' && !this.p2Choice) {
+        this.pickTarget = 2
+        this._pickTargetButtons?.forEach(refresh => refresh())
+      }
     } else {
       if (this.mode === 'boss') return
       const prev = this.p2Index
