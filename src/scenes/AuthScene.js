@@ -32,8 +32,12 @@ const FORM_HTML = `
   background:rgba(3,0,18,0.97);
   border:1.5px solid #4a0e8a;
   border-radius:12px;
-  padding:28px 28px 22px;
-  width:340px;
+  padding:clamp(16px,4vw,28px) clamp(16px,4vw,28px) clamp(14px,3vw,22px);
+  width:min(340px,calc(100vw - 32px));
+  max-height:calc(100vh - 24px);
+  max-height:calc(100dvh - 24px);
+  overflow-y:auto;
+  box-sizing:border-box;
   box-shadow:0 0 40px rgba(91,15,160,0.35),inset 0 0 30px rgba(20,0,50,0.5);
   color:#e9d5ff;
 ">
@@ -90,22 +94,27 @@ export default class AuthScene extends Phaser.Scene {
 
   create() {
     const W = this.scale.width, H = this.scale.height
+    const isMobile = this._isMobileLayout()
+    const titleY = isMobile ? 92 : 148
+    const titleSize = isMobile ? '76px' : '122px'
+    const subtitleY = isMobile ? 164 : 262
+    const subtitleSize = isMobile ? '30px' : '52px'
     this._mode = 'login'
     this._handled = false
 
     this._drawBg(W, H)
 
-    this.add.text(W / 2, 148, 'CHAOS', {
-      fontSize: '122px', color: '#9b59b6', fontFamily: 'monospace', fontStyle: 'bold',
+    this.add.text(W / 2, titleY, 'CHAOS', {
+      fontSize: titleSize, color: '#9b59b6', fontFamily: 'monospace', fontStyle: 'bold',
       stroke: '#2d0060', strokeThickness: 5,
     }).setOrigin(0.5)
 
-    this.add.text(W / 2, 262, 'CONSTRUCT', {
-      fontSize: '52px', color: '#e2d9f3', fontFamily: 'monospace', fontStyle: 'bold',
+    this.add.text(W / 2, subtitleY, 'CONSTRUCT', {
+      fontSize: subtitleSize, color: '#e2d9f3', fontFamily: 'monospace', fontStyle: 'bold',
       stroke: '#3d0070', strokeThickness: 3,
     }).setOrigin(0.5)
 
-    this._statusText = this.add.text(W / 2, H / 2 + 30, 'CHECKING SESSION…', {
+    this._statusText = this.add.text(W / 2, isMobile ? H / 2 - 20 : H / 2 + 30, 'CHECKING SESSION…', {
       fontSize: '13px', color: '#4a1080', fontFamily: 'monospace', letterSpacing: 3,
     }).setOrigin(0.5)
 
@@ -128,13 +137,17 @@ export default class AuthScene extends Phaser.Scene {
         await this._onSuccess(session)
       } else if (!session) {
         this._statusText.destroy()
-        this._showForm(W, H)
+        this._showForm(W, H, isMobile)
       }
     })
   }
 
-  _showForm(W, H) {
-    this._formEl = this.add.dom(W / 2, H / 2 + 115).createFromHTML(FORM_HTML)
+  _isMobileLayout() {
+    return window.innerWidth <= 700 || window.innerHeight <= 520
+  }
+
+  _showForm(W, H, isMobile) {
+    this._formEl = this.add.dom(W / 2, isMobile ? H / 2 + 108 : H / 2 + 115).createFromHTML(FORM_HTML)
 
     // Focus-glow on inputs
     const inputs = ['field-email', 'field-pass', 'field-name']
