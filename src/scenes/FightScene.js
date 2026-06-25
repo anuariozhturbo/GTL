@@ -796,10 +796,11 @@ export default class FightScene extends Phaser.Scene {
     }})
   }
 
-  spawnFlameBolt(x, y, dir, damage, owner) {
+  spawnFlameBolt(x, y, dir, damage, owner, options = {}) {
     const bolt = this.add.image(x, y, 'flamebolt').setDepth(3).setFlipX(dir === -1)
     this.physics.add.existing(bolt)
     bolt.body.setVelocityX(dir * 720)
+    bolt.body.setVelocityY(options.velocityY || 0)
     bolt.body.setAllowGravity(false)
 
     const boltTrail = this.time.addEvent({ delay: 25, loop: true, callback: () => {
@@ -813,7 +814,8 @@ export default class FightScene extends Phaser.Scene {
     const check = this.time.addEvent({ delay: 16, loop: true, callback: () => {
       if (!bolt.active) { check.remove(); return }
       const opp = owner.opponent
-      if (opp && Math.abs(bolt.x - opp.x) < 35 && Math.abs(bolt.y - opp.y) < 70) {
+      const hitRadiusY = options.hitRadiusY || 70
+      if (opp && Math.abs(bolt.x - opp.x) < 35 && Math.abs(bolt.y - opp.y) < hitRadiusY) {
         opp.takeDamage(damage, true, owner) // blockable
         this.spawnBurnEffect(opp.x, opp.y - 30)
         bolt.destroy(); check.remove()
@@ -822,10 +824,12 @@ export default class FightScene extends Phaser.Scene {
     }})
   }
 
-  spawnTNT(x, y, damage, owner) {
+  spawnTNT(x, y, damage, owner, options = {}) {
     const tnt = this.add.image(x, y, 'tnt').setDepth(3)
     this.physics.add.existing(tnt)
     tnt.body.setGravityY(800)
+    tnt.body.setVelocity(options.velocityX || 0, options.velocityY || 0)
+    tnt.body.setBounce(options.bounce || 0)
     tnt.damage = damage
     tnt.owner = owner
 
@@ -836,14 +840,14 @@ export default class FightScene extends Phaser.Scene {
       if (opp && Math.abs(tnt.x - opp.x) < 40 && Math.abs(tnt.y - opp.y) < 60) {
         this.spawnExplosion(tnt.x, tnt.y)
         opp.takeDamage(tnt.damage, false, owner) // unblockable
-        if (owner.activeTNT === tnt) owner.activeTNT = null
+        owner.clearTNT?.(tnt)
         tnt.destroy(); check.remove()
       }
     }})
     return tnt
   }
 
-  spawnSpecialBolt(x, y, dx, dy, targetTNT, damage, owner) {
+  spawnSpecialBolt(x, y, dx, dy, targetTNT, damage, owner, options = {}) {
     const bolt = this.add.circle(x, y, 10, 0xffff00).setDepth(4)
     this.physics.add.existing(bolt)
     bolt.body.setVelocityX(dx * 800)
@@ -861,10 +865,18 @@ export default class FightScene extends Phaser.Scene {
       if (!bolt.active) { check.remove(); return }
       if (!targetTNT || !targetTNT.active) { bolt.destroy(); check.remove(); return }
       if (Math.abs(bolt.x - targetTNT.x) < 20 && Math.abs(bolt.y - targetTNT.y) < 20) {
-        this.spawnExplosion(targetTNT.x, targetTNT.y)
+        const chainTNTs = options.chainTNTs?.filter(tnt => tnt?.active) || [targetTNT]
+        chainTNTs.forEach((tnt, index) => {
+          this.time.delayedCall(index * 90, () => {
+            if (!tnt.active) return
+            this.spawnExplosion(tnt.x, tnt.y)
+            if (index > 0) owner.opponent?.takeDamage(options.chainDamage || damage, false, owner)
+            owner.clearTNT?.(tnt)
+            tnt.destroy()
+          })
+        })
         this.cameras.main.shake(400, 0.02)
         owner.opponent?.takeDamage(damage, false, owner)
-        targetTNT.destroy()
         bolt.destroy(); check.remove()
       }
     }})

@@ -17,11 +17,11 @@ const CHARACTERS = [
   },
   {
     key: 'dice', name: 'DICE', color: 0xf59e0b, hex: '#f59e0b',
-    desc: 'Trap specialist. Place TNT, detonate for double damage.',
-    weapons: 'Crossbow · TNT · Special Bolt',
-    special: 'Shoot TNT → 2× explosion (20s CD)',
-    unique: 'TNT = 23% max HP · Bolt burn = 10%',
-    stats: { hp: 200, spd: 4, pwr: 6 },
+    desc: 'Trap boss. Volley crossbow, throw TNT, chain-detonate the arena.',
+    weapons: 'Triple Crossbow - Double TNT - Chain Bolt',
+    special: 'Chain-detonate TNT blasts (14s CD)',
+    unique: '2 TNTs active - TNT = 28% max HP - Bolt = 12%',
+    stats: { hp: 210, spd: 4, pwr: 8 },
   },
   {
     key: 'thragg', name: 'THRAGG', color: 0xef4444, hex: '#ef4444',
