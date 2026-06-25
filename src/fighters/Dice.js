@@ -32,9 +32,12 @@ export default class Dice extends Fighter {
     if (this.tntDropCooldown > 0 || this.state === 'dead') return
     this.tntDropCooldown = this.cfg.tntCooldown
     const dmg = this.opponent ? this.opponent.maxHp * this.cfg.tntDamagePct : 23
-    const tnt = this.scene.spawnTNT(this.x + this.facing * 24, this.y - 22, dmg, this, {
-      velocityX: this.facing * 260,
-      velocityY: -170,
+    const throwData = this.getTNTThrowData()
+    this.setFacing(throwData.dir)
+
+    const tnt = this.scene.spawnTNT(this.x + throwData.dir * 24, this.y - 22, dmg, this, {
+      velocityX: throwData.velocityX,
+      velocityY: throwData.velocityY,
       bounce: 0.35,
     })
     this.activeTNTs.push(tnt)
@@ -42,6 +45,25 @@ export default class Dice extends Fighter {
       const oldTNT = this.activeTNTs.shift()
       oldTNT?.destroy()
     }
+  }
+
+  getTNTThrowData() {
+    if (!this.opponent) {
+      return {
+        dir: this.facing,
+        velocityX: this.facing * 260,
+        velocityY: -170,
+      }
+    }
+
+    const dx = this.opponent.x - this.x
+    const dy = this.opponent.y - this.y
+    const dir = dx >= 0 ? 1 : -1
+    const distance = Math.abs(dx)
+    const velocityX = dir * Phaser.Math.Clamp(distance * 1.25, 300, 690)
+    const velocityY = Phaser.Math.Clamp(dy * 0.35 - 250 - distance * 0.16, -470, -190)
+
+    return { dir, velocityX, velocityY }
   }
 
   doSpecial() {
