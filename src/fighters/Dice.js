@@ -23,9 +23,9 @@ export default class Dice extends Fighter {
     const sideDmg = baseHp * this.cfg.crossbowSideDamagePct
     const spread = this.cfg.crossbowVolleySpread
 
-    this.scene.spawnFlameBolt(this.x + dir * 34, this.y - 42, dir, sideDmg, this, { velocityY: -spread, hitRadiusY: 78 })
-    this.scene.spawnFlameBolt(this.x + dir * 38, this.y - 40, dir, mainDmg, this, { hitRadiusY: 82 })
-    this.scene.spawnFlameBolt(this.x + dir * 34, this.y - 38, dir, sideDmg, this, { velocityY: spread, hitRadiusY: 78 })
+    this.scene.spawnFlameBolt(this.x + dir * 34, this.y - 42, dir, sideDmg, this, { velocityY: -spread, hitRadiusY: 78, homing: true })
+    this.scene.spawnFlameBolt(this.x + dir * 38, this.y - 40, dir, mainDmg, this, { hitRadiusY: 82, homing: true })
+    this.scene.spawnFlameBolt(this.x + dir * 34, this.y - 38, dir, sideDmg, this, { velocityY: spread, hitRadiusY: 78, homing: true })
   }
 
   dropTNT() {

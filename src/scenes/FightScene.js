@@ -821,6 +821,11 @@ export default class FightScene extends Phaser.Scene {
     const check = this.time.addEvent({ delay: 16, loop: true, callback: () => {
       if (!bolt.active) { check.remove(); return }
       const opp = owner.opponent
+      if (options.homing && opp && opp.state !== 'dead') {
+        const angle = Phaser.Math.Angle.Between(bolt.x, bolt.y, opp.x, opp.y - 35)
+        bolt.setFlipX(Math.cos(angle) < 0)
+        bolt.body.setVelocity(Math.cos(angle) * 720, Math.sin(angle) * 720)
+      }
       const hitRadiusY = options.hitRadiusY || 70
       if (opp && Math.abs(bolt.x - opp.x) < 35 && Math.abs(bolt.y - opp.y) < hitRadiusY) {
         opp.takeDamage(damage, true, owner) // blockable
