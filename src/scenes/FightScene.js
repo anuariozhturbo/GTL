@@ -750,7 +750,13 @@ export default class FightScene extends Phaser.Scene {
   spawnArrow(x, y, dir, owner) {
     const arrow = this.add.image(x, y, 'arrow').setDepth(3).setFlipX(dir === -1)
     this.physics.add.existing(arrow)
-    arrow.body.setVelocityX(dir * 650)
+    const target = owner.opponent
+    const targetX = target ? target.x : x + dir * 400
+    const targetY = target ? target.y - 38 : y
+    const angle = Phaser.Math.Angle.Between(x, y, targetX, targetY)
+    arrow.rotation = angle
+    arrow.setFlipX(Math.cos(angle) < 0)
+    arrow.body.setVelocity(Math.cos(angle) * 650, Math.sin(angle) * 650)
     arrow.body.setAllowGravity(false)
 
     const arrowTrail = this.time.addEvent({ delay: 30, loop: true, callback: () => {
@@ -762,13 +768,13 @@ export default class FightScene extends Phaser.Scene {
     const check = this.time.addEvent({ delay: 16, loop: true, callback: () => {
       if (!arrow.active) { check.remove(); return }
       const opp = owner.opponent
-      if (opp && Math.abs(arrow.x - opp.x) < 30 && Math.abs(arrow.y - opp.y) < 60) {
+      if (opp && Math.abs(arrow.x - opp.x) < 30 && Math.abs(arrow.y - (opp.y - 38)) < 60) {
         opp.takeDamage(owner.cfg.bowDamage, true, owner)
         owner.onBowHit?.()
         arrow.destroy()
         check.remove()
       }
-      if (arrow.x < 0 || arrow.x > WORLD_W) { arrow.destroy(); check.remove() }
+      if (arrow.x < 0 || arrow.x > WORLD_W || arrow.y < 0 || arrow.y > this.H + 80) { arrow.destroy(); check.remove() }
     }})
   }
 
